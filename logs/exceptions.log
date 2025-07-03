@@ -1,0 +1,262 @@
+2025-07-03 21:14:45 [[31merror[39m]: uncaughtException: ⨯ Unable to compile TypeScript:
+[96mservices/cloundinary.ts[0m:[93m14[0m:[93m5[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'allowed_formats' does not exist in type 'Params'.
+
+[7m14[0m     allowed_formats: ["gif"]
+[7m  [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+  [96mnode_modules/multer-storage-cloudinary/lib/index.d.ts[0m:[93m21[0m:[93m5[0m
+    [7m21[0m     params?: Params;
+    [7m  [0m [96m    ~~~~~~[0m
+    The expected type comes from property 'params' which is declared here on type 'Options'
+
+TSError: ⨯ Unable to compile TypeScript:
+[96mservices/cloundinary.ts[0m:[93m14[0m:[93m5[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'allowed_formats' does not exist in type 'Params'.
+
+[7m14[0m     allowed_formats: ["gif"]
+[7m  [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+  [96mnode_modules/multer-storage-cloudinary/lib/index.d.ts[0m:[93m21[0m:[93m5[0m
+    [7m21[0m     params?: Params;
+    [7m  [0m [96m    ~~~~~~[0m
+    The expected type comes from property 'params' which is declared here on type 'Options'
+
+    at createTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:863:19)
+    at getOutput (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1077:36)
+    at Object.compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1433:41)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1617:30)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+2025-07-03 21:14:55 [[31merror[39m]: uncaughtException: ⨯ Unable to compile TypeScript:
+[96mservices/cloundinary.ts[0m:[93m14[0m:[93m5[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'allowed_formats' does not exist in type 'Params'.
+
+[7m14[0m     allowed_formats: ["gif"]
+[7m  [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+  [96mnode_modules/multer-storage-cloudinary/lib/index.d.ts[0m:[93m21[0m:[93m5[0m
+    [7m21[0m     params?: Params;
+    [7m  [0m [96m    ~~~~~~[0m
+    The expected type comes from property 'params' which is declared here on type 'Options'
+
+TSError: ⨯ Unable to compile TypeScript:
+[96mservices/cloundinary.ts[0m:[93m14[0m:[93m5[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'allowed_formats' does not exist in type 'Params'.
+
+[7m14[0m     allowed_formats: ["gif"]
+[7m  [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+  [96mnode_modules/multer-storage-cloudinary/lib/index.d.ts[0m:[93m21[0m:[93m5[0m
+    [7m21[0m     params?: Params;
+    [7m  [0m [96m    ~~~~~~[0m
+    The expected type comes from property 'params' which is declared here on type 'Options'
+
+    at createTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:863:19)
+    at getOutput (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1077:36)
+    at Object.compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1433:41)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1617:30)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+2025-07-03 21:55:12 [[31merror[39m]: uncaughtException: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+Error: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1144:15)
+    at Function.Module._resolveFilename.sharedData.moduleResolveFilenameHook.installedValue [as _resolveFilename] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\@cspotcode\source-map-support\source-map-support.js:811:30)
+    at Function.Module._load (node:internal/modules/cjs/loader:985:27)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+    at require (node:internal/modules/helpers:176:18)
+    at Object.<anonymous> (D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts:6:1)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1618:23)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+2025-07-03 21:55:31 [[31merror[39m]: uncaughtException: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+Error: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1144:15)
+    at Function.Module._resolveFilename.sharedData.moduleResolveFilenameHook.installedValue [as _resolveFilename] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\@cspotcode\source-map-support\source-map-support.js:811:30)
+    at Function.Module._load (node:internal/modules/cjs/loader:985:27)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+    at require (node:internal/modules/helpers:176:18)
+    at Object.<anonymous> (D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts:6:1)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1618:23)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+2025-07-03 21:55:47 [[31merror[39m]: uncaughtException: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+Error: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1144:15)
+    at Function.Module._resolveFilename.sharedData.moduleResolveFilenameHook.installedValue [as _resolveFilename] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\@cspotcode\source-map-support\source-map-support.js:811:30)
+    at Function.Module._load (node:internal/modules/cjs/loader:985:27)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+    at require (node:internal/modules/helpers:176:18)
+    at Object.<anonymous> (D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts:6:1)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1618:23)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+2025-07-03 21:56:07 [[31merror[39m]: uncaughtException: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+Error: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1144:15)
+    at Function.Module._resolveFilename.sharedData.moduleResolveFilenameHook.installedValue [as _resolveFilename] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\@cspotcode\source-map-support\source-map-support.js:811:30)
+    at Function.Module._load (node:internal/modules/cjs/loader:985:27)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+    at require (node:internal/modules/helpers:176:18)
+    at Object.<anonymous> (D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts:6:1)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1618:23)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+2025-07-03 21:56:36 [[31merror[39m]: uncaughtException: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+Error: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1144:15)
+    at Function.Module._resolveFilename.sharedData.moduleResolveFilenameHook.installedValue [as _resolveFilename] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\@cspotcode\source-map-support\source-map-support.js:811:30)
+    at Function.Module._load (node:internal/modules/cjs/loader:985:27)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+    at require (node:internal/modules/helpers:176:18)
+    at Object.<anonymous> (D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts:6:1)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1618:23)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+2025-07-03 21:56:48 [[31merror[39m]: uncaughtException: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+Error: Cannot find module 'express-async-errors'
+Require stack:
+- D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts
+- D:\Web\Work\ahmed-hany\nursy-backend\api\index.ts
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1144:15)
+    at Function.Module._resolveFilename.sharedData.moduleResolveFilenameHook.installedValue [as _resolveFilename] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\@cspotcode\source-map-support\source-map-support.js:811:30)
+    at Function.Module._load (node:internal/modules/cjs/loader:985:27)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+    at require (node:internal/modules/helpers:176:18)
+    at Object.<anonymous> (D:\Web\Work\ahmed-hany\nursy-backend\middleware\error-handler.middleware.ts:6:1)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1618:23)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+2025-07-03 22:11:20 [[31merror[39m]: uncaughtException: ⨯ Unable to compile TypeScript:
+[96mmiddleware/validate.middleware.ts[0m:[93m23[0m:[93m71[0m - [91merror[0m[90m TS2345: [0mArgument of type 'ZodIssue[]' is not assignable to parameter of type 'ZodError<any>'.
+  Type 'ZodIssue[]' is missing the following properties from type 'ZodError<any>': issues, errors, format, message, and 6 more.
+
+[7m23[0m       throw new ValidationError(`Validation failed: ${errorMessage}`, error.issues)
+[7m  [0m [91m                                                                      ~~~~~~~~~~~~[0m
+
+TSError: ⨯ Unable to compile TypeScript:
+[96mmiddleware/validate.middleware.ts[0m:[93m23[0m:[93m71[0m - [91merror[0m[90m TS2345: [0mArgument of type 'ZodIssue[]' is not assignable to parameter of type 'ZodError<any>'.
+  Type 'ZodIssue[]' is missing the following properties from type 'ZodError<any>': issues, errors, format, message, and 6 more.
+
+[7m23[0m       throw new ValidationError(`Validation failed: ${errorMessage}`, error.issues)
+[7m  [0m [91m                                                                      ~~~~~~~~~~~~[0m
+
+    at createTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:863:19)
+    at getOutput (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1077:36)
+    at Object.compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1433:41)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1617:30)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+2025-07-03 22:29:28 [[31merror[39m]: uncaughtException: ⨯ Unable to compile TypeScript:
+[96mconfig/email.ts[0m:[93m14[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'additionalOptions' has no initializer and is not definitely assigned in the constructor.
+
+[7m14[0m   additionalOptions: {}
+[7m  [0m [91m  ~~~~~~~~~~~~~~~~~[0m
+
+TSError: ⨯ Unable to compile TypeScript:
+[96mconfig/email.ts[0m:[93m14[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'additionalOptions' has no initializer and is not definitely assigned in the constructor.
+
+[7m14[0m   additionalOptions: {}
+[7m  [0m [91m  ~~~~~~~~~~~~~~~~~[0m
+
+    at createTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:863:19)
+    at getOutput (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1077:36)
+    at Object.compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1433:41)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1617:30)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+2025-07-03 22:30:35 [[31merror[39m]: uncaughtException: ⨯ Unable to compile TypeScript:
+[96mconfig/email.ts[0m:[93m14[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'additionalOptions' has no initializer and is not definitely assigned in the constructor.
+
+[7m14[0m   additionalOptions: {}
+[7m  [0m [91m  ~~~~~~~~~~~~~~~~~[0m
+
+TSError: ⨯ Unable to compile TypeScript:
+[96mconfig/email.ts[0m:[93m14[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'additionalOptions' has no initializer and is not definitely assigned in the constructor.
+
+[7m14[0m   additionalOptions: {}
+[7m  [0m [91m  ~~~~~~~~~~~~~~~~~[0m
+
+    at createTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:863:19)
+    at getOutput (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1077:36)
+    at Object.compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1433:41)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1617:30)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+2025-07-04 00:01:01 [[31merror[39m]: uncaughtException: ⨯ Unable to compile TypeScript:
+[96mservices/email.ts[0m:[93m7[0m:[93m30[0m - [91merror[0m[90m TS2307: [0mCannot find module '../config/email' or its corresponding type declarations.
+
+[7m7[0m import { EMAIL_CONFIG } from "../config/email"
+[7m [0m [91m                             ~~~~~~~~~~~~~~~~~[0m
+
+TSError: ⨯ Unable to compile TypeScript:
+[96mservices/email.ts[0m:[93m7[0m:[93m30[0m - [91merror[0m[90m TS2307: [0mCannot find module '../config/email' or its corresponding type declarations.
+
+[7m7[0m import { EMAIL_CONFIG } from "../config/email"
+[7m [0m [91m                             ~~~~~~~~~~~~~~~~~[0m
+
+    at createTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:863:19)
+    at getOutput (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1077:36)
+    at Object.compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1433:41)
+    at Module.m._compile (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1617:30)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Object.require.extensions.<computed> [as .ts] (D:\Web\Work\ahmed-hany\nursy-backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)

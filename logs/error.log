@@ -1,0 +1,9 @@
+2025-07-03 19:41:34 [[31merror[39m]: ❌ Redis failed to connect: Reached the max retries per request limit (which is 20). Refer to "maxRetriesPerRequest" option for details.
+2025-07-03 22:47:23 [[31merror[39m]: [EMAIL] Failed to load email template: welcome-email
+2025-07-03 22:47:23 [[31merror[39m]: [EMAIL] Failed to send template email to abdulrahmansaber120@gmail.com using template welcome-email:
+2025-07-03 22:47:23 [[31merror[39m]: Failed to send welcome email to abdulrahmansaber120@gmail.com using template: Failed to send template email: Failed to load email template: welcome-email. ENOENT: no such file or directory, open 'D:\Web\Work\ahmed-hany\templates\emails\welcome-email.html'
+2025-07-03 22:48:03 [[31merror[39m]: [EMAIL] Failed to load email template: welcome-email
+2025-07-03 22:48:03 [[31merror[39m]: [EMAIL] Failed to send template email to abdulrahmansaber120@gmail.com using template welcome-email:
+2025-07-03 22:48:03 [[31merror[39m]: Failed to send welcome email to abdulrahmansaber120@gmail.com using template: Failed to send template email: Failed to load email template: welcome-email. ENOENT: no such file or directory, open 'D:\Web\Work\ahmed-hany\nursy-backend\templates\welcome-email.html'
+2025-07-03 23:58:23 [[31merror[39m]: [JWT Service] Token verification failed:
+2025-07-03 23:58:35 [[31merror[39m]: [JWT Service] Token verification failed:
