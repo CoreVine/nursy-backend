@@ -7,3 +7,12 @@
 2025-07-03 22:48:03 [[31merror[39m]: Failed to send welcome email to abdulrahmansaber120@gmail.com using template: Failed to send template email: Failed to load email template: welcome-email. ENOENT: no such file or directory, open 'D:\Web\Work\ahmed-hany\nursy-backend\templates\welcome-email.html'
 2025-07-03 23:58:23 [[31merror[39m]: [JWT Service] Token verification failed:
 2025-07-03 23:58:35 [[31merror[39m]: [JWT Service] Token verification failed:
+2025-07-06 13:56:20 [[31merror[39m]: ❌ Prisma failed to connect: Can't reach database server at `localhost:3306`
+
+Please make sure your database server is running at `localhost:3306`.
+2025-07-06 13:56:26 [[31merror[39m]: ❌ Redis failed to connect: Reached the max retries per request limit (which is 20). Refer to "maxRetriesPerRequest" option for details.
+2025-07-06 13:56:34 [[31merror[39m]: ❌ Prisma failed to connect: Can't reach database server at `localhost:3306`
+
+Please make sure your database server is running at `localhost:3306`.
+2025-07-06 16:28:44 [[31merror[39m]: [JWT Service] Token verification failed:
+2025-07-06 16:28:51 [[31merror[39m]: [JWT Service] Token verification failed:

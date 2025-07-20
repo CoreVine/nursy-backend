@@ -2,8 +2,7 @@ import jwtService from "../services/jwt.service"
 
 import { Request, Response, NextFunction } from "express"
 import { UnauthorizedError, AuthError } from "../errors"
-
-import { JwtPayload } from "../types"
+import { JwtPayload } from "jsonwebtoken"
 
 declare global {
   namespace Express {

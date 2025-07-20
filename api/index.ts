@@ -24,7 +24,7 @@ const app = express()
 const port = CONFIG.PORT
 
 testPrismaConnection()
-testRedisConnection()
+// testRedisConnection()
 
 app.use(express.json())
 app.use(services)

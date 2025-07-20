@@ -1,5 +1,5 @@
-import { authRouter } from "../routes"
+import { authRouter, nurseRouter } from "../routes"
 
-const router = [authRouter]
+const router = [authRouter, nurseRouter]
 
 export default router
