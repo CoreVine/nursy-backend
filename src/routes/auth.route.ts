@@ -9,7 +9,7 @@ import { z } from "zod"
 import { createCloudinaryMiddleware } from "../services/cloundinary.service"
 import { isAuthenticatedMiddleware } from "../middleware/auth.middleware"
 
-export const authRouter = Router()
+const authRouter = Router()
 
 export const LoginSchema = z.object({
   phoneNumber: z.string().min(10, "Phone number must be at least 10 characters long"),
@@ -38,16 +38,16 @@ const cloudinaryUploader = createCloudinaryMiddleware({
   allowedFormats: ["jpg", "jpeg", "png", "webp", "pdf"]
 })
 
-authRouter.post("/auth/patient/login", validateBody(LoginSchema), PatientAuthController.login)
-authRouter.post("/auth/patient/register", cloudinaryUploader.single("nationalIdPicture"), validateBody(RegisterSchema), PatientAuthController.register)
-authRouter.post("/auth/patient/send-verification", validateBody(SendVerificationTokenSchema), PatientAuthController.sendVerificationToken)
-authRouter.post("/auth/patient/verify-email", validateBody(VerifyAccountSchema), PatientAuthController.verifyAccount)
+authRouter.post("/login", validateBody(LoginSchema), PatientAuthController.login)
 
-authRouter.get("/auth/me", isAuthenticatedMiddleware, PatientAuthController.getUser)
+authRouter.post("/patient/register", cloudinaryUploader.single("nationalIdPicture"), validateBody(RegisterSchema), PatientAuthController.register)
+authRouter.post("/patient/send-verification", validateBody(SendVerificationTokenSchema), PatientAuthController.sendVerificationToken)
+authRouter.post("/patient/verify-email", validateBody(VerifyAccountSchema), PatientAuthController.verifyAccount)
 
-authRouter.post("/auth/nurse/login", validateBody(LoginSchema), NurseAuthController.login)
+authRouter.get("/me", isAuthenticatedMiddleware, PatientAuthController.getUser)
+
 authRouter.post(
-  "/auth/nurse/register",
+  "/nurse/register",
   cloudinaryUploader.fields([
     { name: "cv", maxCount: 1 },
     { name: "nursingLicenseFront", maxCount: 1 },
@@ -59,3 +59,5 @@ authRouter.post(
   validateBody(RegisterSchema),
   NurseAuthController.register
 )
+
+export default authRouter

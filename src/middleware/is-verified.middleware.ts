@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express"
+import { UnauthorizedError } from "../errors"
 import { JwtPayload } from "jsonwebtoken"
-import { InternalServerError, UnauthorizedError } from "../errors"
-import logger from "../lib/logger"
 
 declare global {
   namespace Express {
@@ -11,8 +10,8 @@ declare global {
   }
 }
 
-export function isNurseVerifiedMiddleware(req: Request, res: Response, next: NextFunction) {
-  if (req?.user && req?.user?.isVerified) {
+export function isVerifiedMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (req.user && req?.user?.isVerified) {
     return next()
   }
 

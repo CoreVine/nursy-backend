@@ -1,52 +1,56 @@
+import services from "../src/services/register"
+import express from "express"
+import logger from "../src/lib/logger"
+import router from "../src/routes"
 import dotenv from "dotenv"
-import express, { Request, Response } from "express"
 import path from "path"
-import error from "../middleware/error-handler.middleware"
-import router from "../services/router.service"
-import services from "../services/register"
-import logger from "../lib/logger"
-import emailService from "../services/email.service"
 
-import { CONFIG } from "../config"
-import { NotFoundError } from "../errors"
+import { Request, Response } from "express"
+import { NotFoundError } from "../src/errors"
+import { CONFIG } from "../src/config"
 
-import { testPrismaConnection } from "../services/prisma.service"
-import { testRedisConnection } from "../services/redis.service"
-import { assignUser } from "../middleware/auth.middleware"
+import { bootstrapApplication } from "../src/bootstrap"
+import { errorHandler } from "../src/middleware/error-handler.middleware"
+import { assignUser } from "../src/middleware/auth.middleware"
+import { createServer } from "http"
+import { json } from "../src/lib/helpers"
 
 dotenv.config()
 
-emailService.init()
-error.handleUnhandledRejection()
-error.handleUncaughtException()
-
 const app = express()
-const port = CONFIG.PORT
+const port = CONFIG.appPort
 
-testPrismaConnection()
-// testRedisConnection()
+const httpServer = createServer(app)
 
-app.use(express.json())
-app.use(services)
+bootstrapApplication(httpServer)
+  .then(() => {
+    app.use(services)
+    app.use(express.json())
 
-app.use(assignUser)
+    app.use("/api", router)
+    app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")))
 
-app.use("/api", router)
-app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")))
+    app.use(assignUser)
 
-app.get("/", (req: Request, res: Response) => {
-  return res.status(200).json({
-    message: "Welcome to the API",
-    data: req.user
+    app.get("/", (req: Request, res: Response) => {
+      return json({
+        res,
+        message: "Welcome to the API!",
+        status: 200
+      })
+    })
+
+    app.use((req: Request, res: Response) => {
+      throw new NotFoundError(`The requested URL ${req.url} was not found on this server.`)
+    })
+
+    app.use(errorHandler)
+
+    httpServer.listen(port, () => {
+      logger.info(`✅ Server is running on http://localhost:${port}`)
+    })
   })
-})
-
-app.use((req: Request, res: Response) => {
-  throw new NotFoundError(`The requested URL ${req.url} was not found on this server.`)
-})
-
-app.use(error.errorHandler)
-
-app.listen(port, () => {
-  logger.info(`Server is running on http://localhost:${port}`)
-})
+  .catch((error) => {
+    logger.error("❌ Failed to bootstrap application:", error)
+    process.exit(1)
+  })

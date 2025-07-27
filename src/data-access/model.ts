@@ -1,5 +1,3 @@
-import db from "../services/prisma.service"
-
 export interface PaginationParams {
   page?: number
   pageSize?: number

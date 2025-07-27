@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "mysql"
+  provider  = "postgresql"
   url  	    = env("DATABASE_URL")
 }
 
@@ -17,6 +17,12 @@ enum OrderStatus {
   Pending
   Accepted
   Rejected
+}
+
+enum PaymentStatus {
+  Pending
+  Completed
+  Failed
 }
 
 enum Gender {
@@ -47,6 +53,7 @@ model User {
   userChats     Chat[] @relation("user_chats")
   nurseChats    Chat[] @relation("nurse_chats")
   messages      Message[] @relation("user_messages")
+  payments      OrderPayment[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
@@ -102,6 +109,8 @@ model Order {
   gender            Gender
   age               Int?
 
+  payment           OrderPayment?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
 
@@ -109,6 +118,27 @@ model Order {
   nurse User @relation("nurse_requests", fields: [nurseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("orders")
+}
+
+model OrderPayment {
+  id          Int      @id @default(autoincrement())
+  orderId     Int @unique
+  userId      Int
+  totalAmount Decimal @db.Decimal(10, 2) @default(0)
+  hourlyRate  Decimal @db.Decimal(10, 2) @default(0)
+  totalHours  Decimal @db.Decimal(10, 2) @default(0)
+
+  credit      Decimal @db.Decimal(10, 2) @default(0)
+  debit       Decimal @db.Decimal(10, 2) @default(0)
+ 
+  status      PaymentStatus @default(Pending)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
+
+  order       Order @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("order_payments")
 }
 
 model Chat {
@@ -122,6 +152,8 @@ model Chat {
   nurse       User @relation("nurse_chats", fields: [nurseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   messages    Message[] @relation("message_chat")
 
+  @@unique([userId, nurseId])
+
   @@map("chats")
 }
 
@@ -130,7 +162,7 @@ model Message {
   chatId      Int
   senderId    Int
   content     String   @db.Text
-  attachment  String? @db.Text
+  attachment  String?  @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
 
