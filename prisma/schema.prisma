@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider  = "mysql"
   url  	    = env("DATABASE_URL")
 }
 
@@ -11,6 +11,11 @@ enum UserType {
   Patient
   Custodian
   Nurse
+}
+
+enum OrderType {
+  OnSpot
+  Scheduled
 }
 
 enum OrderStatus {
@@ -28,7 +33,6 @@ enum PaymentStatus {
 enum Gender {
   Male
   Female
-  PrefetNotSay
 }
 
 model User {
@@ -91,31 +95,52 @@ model UserData {
   @@map("user_data")
 }
 
+model Service {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String? @db.Text
+  salary            Decimal @db.Decimal(10, 2)
+  hourlyFees        Decimal @db.Decimal(10, 2) @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
+
+  orders      Order[]
+
+  @@map("services")
+}
+
 model Order {
   id                Int      @id @default(autoincrement())
   userId            Int
-  status            OrderStatus @default(Pending)
+  serviceId         Int
   nurseId           Int 
+  status            OrderStatus @default(Pending)
   location          String
   title             String
   description       String? @db.Text
   employmentType    String
-  salary            Decimal @db.Decimal(10, 2)
-  hourlyFees        Decimal @db.Decimal(10, 2) @default(0)
   locationUrl       String?
-  locationLatitude  Float?
-  locationLongitude Float?
+  latitude          Float?
+  longitude         Float?
   illnessType       String?
   gender            Gender
   age               Int?
+  additionalInformation String? @db.Text
 
-  payment           OrderPayment?
+  type              OrderType @default(OnSpot)
+
+  date              DateTime? @db.Date
+  time              DateTime? @db.Time
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
 
   user  User @relation("user_orders", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   nurse User @relation("nurse_requests", fields: [nurseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  payment           OrderPayment?
+  service           Service @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
 
   @@map("orders")
 }

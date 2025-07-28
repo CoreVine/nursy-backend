@@ -33,6 +33,10 @@ export class BaseModel<TDelegate extends { [k: string]: any }> {
     return this.model.delete({ where: { id } })
   }
 
+  static async create<T extends { create: (args: any) => any }, TArgs extends Parameters<T["create"]>[0]>(this: { model: T }, args: TArgs): Promise<Awaited<ReturnType<T["create"]>>> {
+    return this.model.create(args)
+  }
+
   static async update<T extends { update: (args: any) => any }, TData>(this: { model: T }, id: number, data: TData): Promise<Awaited<ReturnType<T["update"]>>> {
     return this.model.update({
       where: { id },
