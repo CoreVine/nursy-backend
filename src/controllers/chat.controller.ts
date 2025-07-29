@@ -24,10 +24,7 @@ class ChatController {
           nurse: { select: { id: true, username: true, email: true, phoneNumber: true, isVerified: true } }
         },
         where: {
-          nurseId: user?.id,
-          ...(search && {
-            OR: [{ user: { username: { contains: search as string } } }, { user: { email: { contains: search as string } } }, { user: { phoneNumber: { contains: search as string } } }]
-          })
+          OR: [{ nurseId: user?.id }, { userId: user?.id }, { user: { username: { contains: search as string } } }, { user: { email: { contains: search as string } } }, { user: { phoneNumber: { contains: search as string } } }]
         },
         orderBy: {
           id: "desc"
