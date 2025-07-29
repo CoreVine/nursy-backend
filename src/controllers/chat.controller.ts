@@ -6,6 +6,8 @@ import { MessageModel } from "../data-access/message"
 import { ChatModel } from "../data-access/chat"
 import { TRequest } from "../types"
 
+import db from "../services/prisma.service"
+
 class ChatController {
   static async getCurrentUserChats(req: Request, res: Response, next: NextFunction) {
     try {
@@ -20,24 +22,39 @@ class ChatController {
         page: pageNumber,
         pageSize: pageSizeNumber,
         include: {
-          user: { select: { id: true, username: true, email: true, phoneNumber: true, isVerified: true } },
-          nurse: { select: { id: true, username: true, email: true, phoneNumber: true, isVerified: true } }
+          user: { select: { id: true, username: true, type: true, email: true, phoneNumber: true, isVerified: true } },
+          nurse: { select: { id: true, username: true, type: true, email: true, phoneNumber: true, isVerified: true } }
         },
         where: {
-          nurseId: user?.id,
-          ...(search && {
-            OR: [{ user: { username: { contains: search as string } } }, { user: { email: { contains: search as string } } }, { user: { phoneNumber: { contains: search as string } } }]
-          })
+          OR: [{ nurseId: user?.id }, { userId: user?.id }, { user: { username: { contains: search as string } } }, { user: { email: { contains: search as string } } }, { user: { phoneNumber: { contains: search as string } } }]
         },
         orderBy: {
           id: "desc"
         }
       })
 
+      const lastMessages = await db.message.findMany({
+        where: {
+          chatId: { in: chats.data.map((chat) => chat.id) }
+        },
+        orderBy: {
+          createdAt: "desc"
+        },
+        take: 1
+      })
+
+      const finalChats = chats.data.map((chat) => {
+        const lastMessage = lastMessages.find((msg) => msg.chatId === chat.id)
+        return {
+          ...chat,
+          lastMessage: lastMessage ? { id: lastMessage.id, content: lastMessage.content, createdAt: lastMessage.createdAt } : null
+        }
+      })
+
       return json({
         message: "User chats fetched successfully",
         status: 200,
-        data: chats,
+        data: finalChats,
         res
       })
     } catch (error) {

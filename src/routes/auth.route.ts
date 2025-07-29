@@ -39,13 +39,12 @@ const cloudinaryUploader = createCloudinaryMiddleware({
 })
 
 authRouter.post("/login", validateBody(LoginSchema), PatientAuthController.login)
-
-authRouter.post("/patient/register", cloudinaryUploader.single("nationalIdPicture"), validateBody(RegisterSchema), PatientAuthController.register)
-authRouter.post("/patient/send-verification", validateBody(SendVerificationTokenSchema), PatientAuthController.sendVerificationToken)
-authRouter.post("/patient/verify-email", validateBody(VerifyAccountSchema), PatientAuthController.verifyAccount)
+authRouter.post("/send-verification", validateBody(SendVerificationTokenSchema), PatientAuthController.sendVerificationToken)
+authRouter.post("/verify-email", validateBody(VerifyAccountSchema), PatientAuthController.verifyAccount)
 
 authRouter.get("/me", isAuthenticatedMiddleware, PatientAuthController.getUser)
 
+authRouter.post("/patient/register", cloudinaryUploader.single("nationalIdPicture"), validateBody(RegisterSchema), PatientAuthController.register)
 authRouter.post(
   "/nurse/register",
   cloudinaryUploader.fields([
