@@ -20,10 +20,10 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
       errorResponse.errors = err.originalZodError.flatten().fieldErrors
     }
 
-    if (process.env.NODE_ENV === "development") {
-      errorResponse.type = err.name
-      errorResponse.stack = err.stack
-    }
+    /* if (process.env.NODE_ENV === "development") { */
+    errorResponse.type = err.name
+    errorResponse.stack = err.stack
+    /*  } */
 
     return res.status(err.statusCode).json(errorResponse)
   }
@@ -32,14 +32,14 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
   const internalError = new InternalServerError("An unexpected internal server error occurred.", err)
   const response: Record<string, any> = {
     data: null,
-    message: process.env.NODE_ENV === "production" ? "Something went very wrong! Please try again later." : internalError.message,
+    message: internalError?.message || "Something went very wrong! Please try again later.",
     status: internalError.statusCode
   }
 
-  if (process.env.NODE_ENV === "development") {
-    response.type = internalError.name
-    response.stack = internalError.stack
-  }
+  /* if (process.env.NODE_ENV === "development") { */
+  response.type = internalError.name
+  response.stack = internalError.stack
+  /* } */
 
   return res.status(internalError.statusCode).json(response)
 }
