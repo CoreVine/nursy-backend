@@ -10,8 +10,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1d"
 function signToken(payload: JwtPayload): string {
   try {
     const token = jwt.sign(payload, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN,
-      algorithm: "HS256"
+      expiresIn: "1d"
     })
     logger.info("[JWT Service] Token signed successfully.")
     return token
