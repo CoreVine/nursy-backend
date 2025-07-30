@@ -7,7 +7,7 @@
     "postinstall": "npx prisma generate",
     "dev": "nodemon api/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "nodemon api/index.ts"
   },
   "keywords": [],
   "author": "",
