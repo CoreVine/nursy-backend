@@ -6,7 +6,6 @@
   "scripts": {
     "postinstall": "npx prisma generate",
     "dev": "nodemon api/index.ts",
-    "build": "tsc",
     "start": "nodemon api/index.ts"
   },
   "keywords": [],
