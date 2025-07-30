@@ -54,7 +54,10 @@ class ChatController {
       return json({
         message: "User chats fetched successfully",
         status: 200,
-        data: finalChats,
+        data: {
+          data: finalChats,
+          pagination: chats.pagination
+        },
         res
       })
     } catch (error) {
