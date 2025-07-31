@@ -103,9 +103,13 @@ class ChatController {
       const chat = await ChatModel.findChat(id)
       if (!chat) throw new NotFoundError("Chat not found")
 
-      if (chat.nurseId !== (req as TRequest).user?.id) throw new UnauthorizedError("You are not authorized to view this chat")
+      const user = (req as TRequest).user
+
+      if (chat.nurseId !== user?.id && chat.userId !== user?.id) throw new UnauthorizedError("You are not authorized to view this chat")
 
       const messages = await MessageModel.paginate({
+        page: pageNumber,
+        pageSize: pageSizeNumber,
         include: {
           sender: {
             select: {
@@ -119,6 +123,9 @@ class ChatController {
         },
         where: {
           chatId: id
+        },
+        orderBy: {
+          id: "desc"
         }
       })
 
