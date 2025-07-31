@@ -29,7 +29,11 @@ export default class NurseAuthController {
       const isPasswordValid = await bcrypt.compare(password, user.password)
       if (!isPasswordValid) throw new UnauthorizedError("Incorrect credentials")
 
-      const { password: userPassword, ...payload } = user
+      const { password: userPassword, ...rest } = user
+      const payload = {
+        id: user.id,
+        email: user.email
+      }
 
       const token = jwtService.signToken(payload)
 
@@ -37,7 +41,7 @@ export default class NurseAuthController {
         message: "Logged in successfully",
         status: 200,
         data: {
-          user: payload,
+          user: rest,
           token
         },
         res
@@ -107,7 +111,12 @@ export default class NurseAuthController {
         }
       })
 
-      const { password: userPassword, ...payload } = user
+      const { password: userPassword, ...rest } = user
+      const payload = {
+        id: user.id,
+        email: user.email
+      }
+
       const token = jwtService.signToken(payload)
 
       return json({
@@ -115,7 +124,7 @@ export default class NurseAuthController {
         status: 201,
         data: {
           token,
-          user: payload
+          user: rest
         },
         res
       })

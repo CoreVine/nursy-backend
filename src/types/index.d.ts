@@ -13,7 +13,10 @@ type TResponse = {
   errors?: any
 }
 
-type JwtPayload = Omit<User, "password">
+type JwtPayload = {
+  id: number
+  email: string
+}
 
 type PaymobAuthResponse = {
   token: string

@@ -34,7 +34,11 @@ export default class PatientAuthController {
       const isPasswordValid = await bcrypt.compare(password, user.password)
       if (!isPasswordValid) throw new UnauthorizedError("Incorrect credentials")
 
-      const { password: userPassword, ...payload } = user
+      const { password: userPassword, ...rest } = user
+      const payload = {
+        id: user.id,
+        email: user.email
+      }
 
       const token = jwtService.signToken(payload)
 
@@ -42,7 +46,7 @@ export default class PatientAuthController {
         message: "Logged in successfully",
         status: 200,
         data: {
-          user: payload,
+          user: rest,
           token
         },
         res
@@ -94,7 +98,11 @@ export default class PatientAuthController {
         expiryMinutes: moment(verification?.expiresAt).format("MMMM Do YYYY, h:mm:ss A")
       })
 
-      const { password: userPassword, ...payload } = user
+      const { password: userPassword, ...rest } = user
+      const payload = {
+        id: user.id,
+        email: user.email
+      }
       const token = jwtService.signToken(payload)
 
       return json({
@@ -102,7 +110,7 @@ export default class PatientAuthController {
         status: 201,
         data: {
           token,
-          user: payload
+          user: rest
         },
         res
       })
