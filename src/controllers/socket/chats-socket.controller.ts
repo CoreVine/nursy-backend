@@ -40,14 +40,11 @@ class ChatsSocketController {
   }
 
   static async getUserFromSocket(socket: Socket): Promise<UserPayload> {
-    const header = socket.handshake.headers.authorization || socket.handshake.headers.Authorization
-    if (!header || typeof header !== "string" || !header.startsWith("Bearer ")) {
-      throw new Error("Authorization token missing or malformed.")
+    const header = socket.handshake.auth.token
+    if (!header) {
+      throw new Error("Authorization token missing.")
     }
-    const token = header.split(" ")[1]
-    if (!token) throw new Error("JWT token missing.")
-
-    return jwtService.verifyToken(token)
+    return jwtService.verifyToken(header)
   }
 
   static async authorizeChatAccess(userId: number, chatId: number) {
