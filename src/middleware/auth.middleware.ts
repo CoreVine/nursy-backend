@@ -36,13 +36,7 @@ export async function isAuthenticatedMiddleware(req: Request, res: Response, nex
     req.user = userWithoutPassword
     next()
   } catch (error: any) {
-    if (error.message === "Token has expired.") {
-      throw new AuthError("Your session has expired. Please log in again.")
-    }
-    if (error.message === "Invalid token.") {
-      throw new AuthError("Invalid token. Please log in again.")
-    }
-    throw new AuthError(`Authentication failed: ${error.message}`)
+    next(error)
   }
 }
 
