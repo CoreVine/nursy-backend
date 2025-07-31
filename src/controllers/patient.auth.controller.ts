@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 import moment from "moment"
 import db from "../services/prisma.service"
 
