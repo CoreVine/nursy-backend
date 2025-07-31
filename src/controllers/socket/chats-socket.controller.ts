@@ -116,6 +116,10 @@ class ChatsSocketController {
           }
         }
       })
+      if (!message) {
+        throw new Error("Failed to create message")
+      }
+      logger.info(`(user ${user.id}) sent message in chat_${payload.chatId}`)
       io.to(`chat_${payload.chatId}`).emit("receiveMessage", message)
     } catch (error: any) {
       logger.warn(`sendMessage error: ${error.message}`)
