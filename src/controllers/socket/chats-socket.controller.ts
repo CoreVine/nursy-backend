@@ -55,8 +55,8 @@ class ChatsSocketController {
       where: { id: chatId },
       select: { userId: true, nurseId: true }
     })
-    if (!chat) throw new Error("Chat not found")
-    if (userId !== chat.userId && userId !== chat.nurseId) {
+    if (!chat) throw new Error("Chat2 not found")
+    if (chat.userId != userId && chat.nurseId != userId) {
       throw new Error("You are not authorized to access this chat.")
     }
     return chat
