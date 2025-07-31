@@ -52,10 +52,10 @@ class ChatsSocketController {
 
   static async authorizeChatAccess(userId: number, chatId: number) {
     const chat = await db.chat.findUnique({
-      where: { id: chatId },
+      where: { id: Number(chatId) },
       select: { userId: true, nurseId: true }
     })
-    if (!chat) throw new Error("Chat2 not found")
+    if (!chat) throw new Error("Chat not found")
     if (chat.userId != userId && chat.nurseId != userId) {
       throw new Error("You are not authorized to access this chat.")
     }
@@ -99,8 +99,8 @@ class ChatsSocketController {
 
       const message = await db.message.create({
         data: {
-          chatId: payload.chatId,
-          senderId: user.id,
+          chatId: Number(payload.chatId),
+          senderId: Number(user.id),
           content: payload.content,
           attachment: payload.attachment
         },
