@@ -20,13 +20,16 @@ enum TimeType {
 
 enum OrderStatus {
   Pending
+  InProgress
+  Completed
+  Stale
   Accepted
   Rejected
 }
 
 enum PaymentStatus {
   Pending
-  Completed
+  Paid
   Failed
 } 
 
@@ -74,6 +77,8 @@ model User {
 
   @@map("users")
 }
+
+
 
 model VerificationToken {
   id        Int      @id @default(autoincrement())
@@ -144,19 +149,18 @@ model Order {
   title             String
   description       String? @db.Text
   employmentType    String? @db.VarChar(255) @default("Full-Time")
-  locationUrl       String?
   longitude         Float?
   latitude          Float?
-  illnessTypeId     Int?
+  illnessTypeId     Int
   specificServiceId Int?
   gender            Gender 
   age               Int?
   additionalInformation String? @db.Text
 
   type              TimeType @default(OnSpot)
+  paymentType       PaymentType @default(Hourly)
 
-  date              DateTime? @db.Date 
-  time              DateTime? @db.Time
+  date              DateTime? 
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
@@ -169,26 +173,39 @@ model Order {
   payment           OrderPayment?
   service           Service @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-
   @@map("orders")
+}
+
+model InProgressOrder {
+  id      Int @id @default(autoincrement())
+  userId  Int
+  nurseId Int
+  orderId Int
+  status  OrderStatus @default(InProgress)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
+
+  @@map("in_progress_orders")
 }
 
 model OrderPayment {
   id          Int      @id @default(autoincrement())
   orderId     Int @unique
   userId      Int
+  nurseId     Int @default(1)
   
   totalHours    Float? 
   serviceAmount Float? 
   totalAmount   Float? @default(0)
 
   paymentUrl              String? @db.Text
+  
   paymentMethod           String? @db.VarChar(255) @default("kashier")
   kashierTranscationId    String? @db.VarChar(255)
   kashierOrderId          String? @db.VarChar(255)
   kashierResponse         String? @db.LongText
 
-  type        PaymentType @default(Hourly)
   status      PaymentStatus @default(Pending)
 
   createdAt   DateTime @default(now())

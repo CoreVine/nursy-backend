@@ -23,8 +23,12 @@ class SocketIOService {
     logger.info("✅ Socket.IO server initialized.")
 
     this.io.on("connection", (socket) => {
-      ChatsSocketController.handleConnection(socket, this.io!)
-      RequestsSocketController.handleConnection(socket, this.io!)
+      try {
+        ChatsSocketController.handleConnection(socket, this.io!)
+        RequestsSocketController.handleConnection(socket, this.io!)
+      } catch (err) {
+        console.error("SocketController error:", err)
+      }
     })
     this.io.on("error", (error) => this.handleServerError(error))
 
@@ -35,18 +39,12 @@ class SocketIOService {
   private handleConnection(socket: Socket): void {
     logger.info(`New Socket.IO client connected: ${socket.id} from ${socket.handshake.address}`)
 
-    socket.on("chatMessage", (message: string) => this.handleChatMessage(socket, message))
     socket.on("disconnect", (reason: string) => this.handleDisconnect(socket, reason))
     socket.on("error", (error: Error) => this.handleClientError(socket, error))
 
     socket.emit("welcome", `Welcome, ${socket.id}! You are connected to the chat.`)
 
     socket.broadcast.emit("userJoined", `User ${socket.id} has joined the chat.`)
-  }
-
-  private handleChatMessage(socket: Socket, message: string): void {
-    logger.info(`Received chatMessage from ${socket.id}: "${message}"`)
-    this.io?.emit("chatMessage", { userId: socket.id, message: message, timestamp: new Date().toISOString() })
   }
 
   private handleDisconnect(socket: Socket, reason: string): void {

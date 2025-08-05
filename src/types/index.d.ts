@@ -18,6 +18,10 @@ type JwtPayload = {
   email: string
 }
 
+type Appointment = {
+  date: Date | null
+}
+
 type PaymobAuthResponse = {
   token: string
 }

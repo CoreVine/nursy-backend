@@ -1,6 +1,7 @@
 import crypto from "crypto"
 
 import { KashierHashData, PaymentInitResult, UserPaymentData } from "../types"
+import { CONFIG } from "../config"
 
 export class KashierService {
   private baseUrl: string
@@ -43,7 +44,7 @@ export class KashierService {
       amount: paymentData.amount,
       currency: paymentData.currency,
       hash,
-      merchantRedirect: `http://localhost:8099/payment/success/${paymentData.id}`,
+      merchantRedirect: `${CONFIG.appUrl}/api/payments/${paymentData.id}/verify`,
       allowedMethods: "card,wallet,bank_installments",
       display: "en"
     }

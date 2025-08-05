@@ -2,6 +2,7 @@ export const CONFIG = {
   jwtSecret: process.env.JWT_SECRET!,
   appPort: process.env.APP_PORT,
   appName: process.env.APP_NAME || "Nursy",
+  appUrl: process.env.APP_URL || "http://localhost:8099",
   rateLimiter: {
     windowMs: 15 * 60 * 1000,
     max: 1000,
