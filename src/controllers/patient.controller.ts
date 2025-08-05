@@ -2,7 +2,7 @@ import { json } from "../lib/helpers"
 
 import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors"
 import { NextFunction, Request, Response } from "express"
-import { OrderStatus, OrderType, UserType } from "@prisma/client"
+import { OrderStatus, TimeType, UserType } from "@prisma/client"
 import { CreateRequestPaymentSchema, CreateRequestSchema } from "../routes/patient.route"
 import { OrderStatusList } from "../lib/type-lists"
 import { OrderModel } from "../data-access/order"
@@ -30,40 +30,19 @@ class PatientController {
       let date = data.date
       let time = `1970-01-01T${data.time}Z`
 
-      if (data.type === OrderType.OnSpot) {
+      if (data.type === TimeType.OnSpot) {
         if (data.date || data.time) throw new BadRequestError("Invalid Values, Once the type is OnSpot, date and time should not be provided")
         date = new Date().toISOString().split("T")[0]
         time = `1970-01-01T${new Date().toISOString().split("T")[1]}Z`
       }
 
-      if (data.type === OrderType.Scheduled) {
+      if (data.type === TimeType.Scheduled) {
         if (!data.date || !data.time) throw new BadRequestError("Date and time are required for scheduled requests")
       }
 
-      const request = await OrderModel.create({
-        data: {
-          ...data,
-          date,
-          time,
-          userId: req.user?.id
-        },
-        include: {
-          service: true,
-          nurse: {
-            select: {
-              id: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-              isVerified: true
-            }
-          }
-        }
-      })
-
       return json({
         message: "Request created successfully",
-        data: request,
+        data: {},
         status: 201,
         res
       })
@@ -167,10 +146,7 @@ class PatientController {
           orderId,
           userId: req.user?.id,
           totalHours: data.totalHours,
-          hourlyRate: +request.service.hourlyFees * data.totalHours,
-          totalAmount: +request.service.hourlyFees * data.totalHours,
-          credit: 0,
-          debit: +request.service.hourlyFees * data.totalHours
+          totalAmount: +request.service.hourlyFees * data.totalHours
         }
       })
 

@@ -54,10 +54,9 @@ export default class NurseAuthController {
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
       const parsed = RegisterSchema.safeParse(req.body)!
-
       if (!parsed.success) throw new ValidationError("Errors", parsed.error)
 
-      const { phoneNumber, password, username, email, type } = parsed.data
+      const { phoneNumber, gender, birthDate, password, username, email, type } = parsed.data
 
       const phoneNumberExists = await UserModel.findByPhoneNumber(phoneNumber)
       if (phoneNumberExists) throw new BadRequestError("Phone number already exists")
@@ -92,6 +91,8 @@ export default class NurseAuthController {
           username,
           phoneNumber,
           email,
+          gender,
+          birthDate: new Date(birthDate),
           type,
           password: hashedPassword
         }
@@ -111,7 +112,14 @@ export default class NurseAuthController {
         }
       })
 
+      const newWallet = await db.userWallet.create({
+        data: {
+          userId: user.id
+        }
+      })
+
       const { password: userPassword, ...rest } = user
+
       const payload = {
         id: user.id,
         email: user.email
@@ -126,6 +134,53 @@ export default class NurseAuthController {
           token,
           user: rest
         },
+        res
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  static async updateData(req: Request, res: Response, next: NextFunction) {
+    try {
+      const uploadedFiles = req.files as {
+        cv?: Express.Multer.File[]
+        nursingLicenseFront?: Express.Multer.File[]
+        nursingLicenseBack?: Express.Multer.File[]
+        graduationCertificate?: Express.Multer.File[]
+        nationalIdFront?: Express.Multer.File[]
+        nationalIdBack?: Express.Multer.File[]
+      }
+
+      const cvFile = uploadedFiles?.["cv"] ? uploadedFiles?.["cv"]?.[0]?.path : null
+      const nursingLicenseFrontFile = uploadedFiles?.["nursingLicenseFront"] ? uploadedFiles?.["nursingLicenseFront"]?.[0]?.path : null
+      const nursingLicenseBackFile = uploadedFiles?.["nursingLicenseBack"] ? uploadedFiles?.["nursingLicenseBack"]?.[0]?.path : null
+      const graduationCertificateFile = uploadedFiles?.["graduationCertificate"] ? uploadedFiles?.["graduationCertificate"]?.[0]?.path : null
+      const nationalIdFrontFile = uploadedFiles?.["nationalIdFront"] ? uploadedFiles?.["nationalIdFront"]?.[0]?.path : null
+      const nationalIdBackFile = uploadedFiles?.["nationalIdBack"] ? uploadedFiles?.["nationalIdBack"]?.[0]?.path : null
+
+      const user = req.user
+      const realUser = await db.user.findUnique({
+        where: { id: user?.id },
+        include: { userData: true }
+      })
+
+      const updated = await db.userData.update({
+        where: { userId: user?.id },
+        data: {
+          cv: cvFile || realUser?.userData?.cv,
+          nusringLicenseFront: nursingLicenseFrontFile || realUser?.userData?.nusringLicenseFront,
+          nusringLicenseBack: nursingLicenseBackFile || realUser?.userData?.nusringLicenseBack,
+          graduationCertificate: graduationCertificateFile || realUser?.userData?.graduationCertificate,
+          nationalIdFront: nationalIdFrontFile || realUser?.userData?.nationalIdFront,
+          nationalIdBack: nationalIdBackFile || realUser?.userData?.nationalIdBack
+        }
+      })
+
+      return json({
+        message: "Nurse data updated successfully",
+        status: 201,
+        data: updated,
         res
       })
     } catch (error) {

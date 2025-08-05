@@ -5,16 +5,19 @@ import db from "../services/prisma.service"
 import emailService from "../services/email.service"
 import jwtService from "../services/jwt.service"
 
+import { LoginSchema, RegisterSchema, SendVerificationTokenSchema, UpdateLocationSchema, UpdatePasswordSchema, UpdateInformationSchema, VerifyAccountSchema } from "../routes/auth.route"
+
 import { BadRequestError, NotFoundError, UnauthorizedError, ValidationError } from "../errors"
-import { LoginSchema, RegisterSchema, SendVerificationTokenSchema, VerifyAccountSchema } from "../routes/auth.route"
 import { NextFunction, Request, Response } from "express"
 import { TRequest } from "../types"
 import { UserModel } from "../data-access/user"
 import { UserType } from "@prisma/client"
 
-import { generateSixDigitCode } from "../lib/utils"
-import { CONFIG } from "../config"
+import { extractCloudinaryPublicId, generateSixDigitCode } from "../lib/utils"
+import { deleteCloudinaryFile } from "../services/cloundinary.service"
 import { json } from "../lib/helpers"
+
+import { CONFIG } from "../config"
 
 export default class PatientAuthController {
   static async login(req: Request, res: Response, next: NextFunction) {
@@ -61,7 +64,7 @@ export default class PatientAuthController {
       const parsed = RegisterSchema.safeParse(req.body)!
       if (!parsed.success) throw new ValidationError("Errors", parsed.error)
 
-      const { phoneNumber, password, username, email, type } = parsed.data
+      const { phoneNumber, gender, birthDate, password, username, email, type } = parsed.data
 
       if (type == UserType.Patient && req.file) throw new BadRequestError("Patients should not upload a National ID picture")
       if (type == UserType.Custodian && !req.file) throw new BadRequestError("Custodian should upload a National ID picture")
@@ -79,6 +82,8 @@ export default class PatientAuthController {
         data: {
           username,
           phoneNumber,
+          gender,
+          birthDate: new Date(birthDate),
           email,
           type,
           nationalIdPicture: fileUrl,
@@ -141,6 +146,126 @@ export default class PatientAuthController {
       })
     } catch (error) {
       next(error)
+    }
+  }
+
+  static async updateInformation(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { data, success, error } = UpdateInformationSchema.safeParse(req.body)
+      if (!success) throw new ValidationError("Errors", error)
+
+      const { username, email, phoneNumber } = data
+
+      const isUsernameExists = await db.user.findFirst({
+        where: { username, id: { not: req?.user?.id } },
+        select: { id: true }
+      })
+      if (isUsernameExists) throw new BadRequestError("Username already exists")
+
+      const isEmailExists = await db.user.findFirst({
+        where: { email, id: { not: req?.user?.id } },
+        select: { id: true }
+      })
+      if (isEmailExists) throw new BadRequestError("E-mail already exists")
+
+      const isPhoneNumberExists = await db.user.findFirst({
+        where: { phoneNumber, id: { not: req?.user?.id } },
+        select: { id: true }
+      })
+      if (isPhoneNumberExists) throw new BadRequestError("Phone number already exists")
+
+      const mainUser = await db.user.findFirst({
+        where: { username, id: { not: req?.user?.id } },
+        select: { id: true, nationalIdPicture: true, type: true }
+      })
+
+      if (req.file && mainUser?.type !== UserType.Custodian) {
+        const publicId = extractCloudinaryPublicId(req?.file?.path || "")
+        await deleteCloudinaryFile(publicId)
+        throw new BadRequestError("Only Custodian can update their National ID picture")
+      }
+
+      const updatedUser = await db.user.update({
+        where: { id: req?.user?.id },
+        data: {
+          username,
+          email,
+          phoneNumber,
+          nationalIdPicture: req.file ? req.file.path : undefined
+        }
+      })
+
+      const { password, ...rest } = updatedUser
+
+      return json({
+        message: "User information updated successfully",
+        status: 200,
+        data: rest,
+        res
+      })
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  static async updatePassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { data, success, error } = UpdatePasswordSchema.safeParse(req.body)
+      if (!success) throw new ValidationError("Errors", error)
+
+      const { currentPassword, newPassword } = data
+      const user = req.user
+
+      const userWithPassword = await db.user.findUnique({
+        where: { id: user?.id },
+        select: { password: true }
+      })
+
+      const isPasswordCorrect = await bcrypt.compare(currentPassword, userWithPassword?.password || "")
+      if (!isPasswordCorrect) throw new UnauthorizedError("Current password is incorrect")
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10)
+      await db.user.update({
+        where: { id: user?.id },
+        data: { password: hashedPassword }
+      })
+
+      return json({
+        message: "Password updated successfully",
+        status: 200,
+        res
+      })
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  static async updateLocation(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { data, success, error } = UpdateLocationSchema.safeParse(req.body)
+      if (!success) throw new ValidationError("Errors", error)
+
+      const { latitude, longitude } = data
+
+      const user = req.user
+
+      const updatedUser = await db.user.update({
+        where: { id: user?.id },
+        data: {
+          latitude,
+          longitude
+        }
+      })
+      const { password, ...rest } = updatedUser
+
+      return json({
+        message: "Location updated successfully",
+        status: 200,
+        data: rest,
+        res
+      })
+    } catch (error) {
+      return next(error)
     }
   }
 

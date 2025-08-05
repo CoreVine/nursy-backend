@@ -11,7 +11,6 @@ import socketIOService from "./services/socket.service"
 export async function bootstrapApplication(httpServer: HttpServer): Promise<void> {
   try {
     logger.info("Starting application bootstrap process...")
-
     logger.info("Global error handlers registered.")
 
     socketIOService.init(httpServer)

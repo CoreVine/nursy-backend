@@ -70,3 +70,43 @@ type PaymobPaymentDetails = {
 type PaymobPaymentKeyResponse = {
   token: string
 }
+
+interface Plan {
+  name: string
+}
+
+export interface UserPaymentData {
+  id: number | string
+  amount: number
+  currency: string
+  kashier_order_id?: string
+}
+
+interface PaymentInitResult {
+  payment_url: string
+  form_url: string
+  form_method: "GET"
+  data: Record<string, string | number>
+}
+
+interface IframePaymentData {
+  amount: number
+  description: string
+  hash: string
+  currency: string
+  orderId: string
+  merchantId: string
+  allowedMethods: string
+  merchantRedirect: string
+  mode: "test" | "live"
+  store: string
+  type: "external"
+  display: string
+}
+
+type KashierHashData = {
+  merchantId: string
+  orderId: string
+  amount: number
+  currency: string
+}

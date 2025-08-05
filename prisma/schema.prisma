@@ -13,7 +13,7 @@ enum UserType {
   Nurse
 }
 
-enum OrderType {
+enum TimeType {
   OnSpot
   Scheduled
 }
@@ -30,6 +30,11 @@ enum PaymentStatus {
   Failed
 }
 
+enum PaymentType {
+  Hourly
+  Services
+}
+
 enum Gender {
   Male
   Female
@@ -43,12 +48,17 @@ model User {
   phoneNumber       String @unique
   nationalIdPicture String? @db.Text
   password          String
+  longitude         Float?
+  latitude          Float?
+  gender            Gender @default(Male)
+  birthDate         DateTime?
 
   isVerified        Boolean @default(false)
   verifiedAt        DateTime?
   verifiedBy        String?
 
   userData           UserData?
+  wallet             UserWallet?
   verificationTokens VerificationToken[]
 
   orders    Order[] @relation("user_orders")
@@ -92,7 +102,21 @@ model UserData {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt @default(now())
 
-  @@map("user_data")
+  @@map("users_data")
+}
+
+model UserWallet {
+  id          Int      @id @default(autoincrement())
+  userId      Int @unique
+  balance     Decimal @db.Decimal(10, 2) @default(0)
+  debit       Decimal @db.Decimal(10, 2) @default(0)
+
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
+
+  @@map("users_wallets")
 }
 
 model Service {
@@ -106,6 +130,7 @@ model Service {
   updatedAt   DateTime @updatedAt @default(now())
 
   orders      Order[]
+  specificServices SpecificService[]
 
   @@map("services")
 }
@@ -113,31 +138,34 @@ model Service {
 model Order {
   id                Int      @id @default(autoincrement())
   userId            Int
-  serviceId         Int
-  nurseId           Int 
+  serviceId         Int @default(1)
+  nurseId           Int?
   status            OrderStatus @default(Pending)
-  location          String
   title             String
   description       String? @db.Text
-  employmentType    String
+  employmentType    String? @db.VarChar(255) @default("Full-Time")
   locationUrl       String?
-  latitude          Float?
   longitude         Float?
-  illnessType       String?
-  gender            Gender
+  latitude          Float?
+  illnessTypeId     Int?
+  specificServiceId Int?
+  gender            Gender 
   age               Int?
   additionalInformation String? @db.Text
 
-  type              OrderType @default(OnSpot)
+  type              TimeType @default(OnSpot)
 
-  date              DateTime? @db.Date
+  date              DateTime? @db.Date 
   time              DateTime? @db.Time
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
 
-  user  User @relation("user_orders", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  nurse User @relation("nurse_requests", fields: [nurseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  illnessType       IllnessType? @relation(fields: [illnessTypeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  specificService   SpecificService? @relation(fields: [specificServiceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  user              User @relation("user_orders", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  nurse             User? @relation("nurse_requests", fields: [nurseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   payment           OrderPayment?
   service           Service @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
@@ -149,14 +177,20 @@ model OrderPayment {
   id          Int      @id @default(autoincrement())
   orderId     Int @unique
   userId      Int
-  totalAmount Decimal @db.Decimal(10, 2) @default(0)
-  hourlyRate  Decimal @db.Decimal(10, 2) @default(0)
-  totalHours  Decimal @db.Decimal(10, 2) @default(0)
+  
+  totalHours    Float? 
+  serviceAmount Float? 
+  totalAmount   Float? @default(0)
 
-  credit      Decimal @db.Decimal(10, 2) @default(0)
-  debit       Decimal @db.Decimal(10, 2) @default(0)
- 
+  paymentUrl              String? @db.Text
+  paymentMethod           String? @db.VarChar(255) @default("kashier")
+  kashierTranscationId    String? @db.VarChar(255)
+  kashierOrderId          String? @db.VarChar(255)
+  kashierResponse         String? @db.LongText
+
+  type        PaymentType @default(Hourly)
   status      PaymentStatus @default(Pending)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
 
@@ -195,4 +229,47 @@ model Message {
   sender      User @relation("user_messages", fields: [senderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("messages")
+}
+
+model IllnessType {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String? @db.Text
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
+
+  orders      Order[]
+
+  @@map("illness_types")
+}
+
+model SpecificService {
+  id          Int      @id @default(autoincrement())
+  name        String
+  price       Decimal @db.Decimal(10, 2) @default(0)
+  description String? @db.Text
+
+  serviceId   Int @default(1)
+  service     Service @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
+
+  orders      Order[]
+
+  @@map("specific_services")
+}
+
+model Settings {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       String?  @db.Text
+  description String?  @db.Text
+  groupName   String   @db.VarChar(255) @default("general")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
+
+  @@map("settings")
 }

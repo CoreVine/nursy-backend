@@ -1,6 +1,6 @@
+import { BaseSocketController } from "./base.socket.controller"
 import { Socket, Server as SocketIOServer } from "socket.io"
 
-import jwtService from "../../services/jwt.service"
 import logger from "../../lib/logger"
 import db from "../../services/prisma.service"
 
@@ -10,19 +10,16 @@ interface JoinChatPayload {
 interface LeaveChatPayload {
   chatId: number
 }
+
 interface SendMessagePayload {
   chatId: number
   content: string
   attachment?: string
 }
-interface UserPayload {
-  id: number
-  [key: string]: any
-}
 
-class ChatsSocketController {
+class ChatsSocketController extends BaseSocketController {
   static handleConnection(socket: Socket, io: SocketIOServer) {
-    logger.info(`ChatsSocketController: Client connected: ${socket.id}`)
+    logger.info(`[ChatsSocketController]: Client connected: ${socket.id}`)
 
     socket.on("joinChat", (payload: JoinChatPayload) => ChatsSocketController.handleJoinChat(socket, payload))
     socket.on("leaveChat", (payload: LeaveChatPayload) => ChatsSocketController.handleLeaveChat(socket, payload))
@@ -39,23 +36,13 @@ class ChatsSocketController {
     socket.emit("welcome", `Welcome, ${socket.id}! You are connected to the chat.`)
   }
 
-  static async getUserFromSocket(socket: Socket): Promise<UserPayload> {
-    const header = socket.handshake.auth.token
-    if (!header) {
-      throw new Error("Authorization token missing.")
-    }
-    return jwtService.verifyToken(header)
-  }
-
   static async authorizeChatAccess(userId: number, chatId: number) {
     const chat = await db.chat.findUnique({
       where: { id: Number(chatId) },
       select: { userId: true, nurseId: true }
     })
     if (!chat) throw new Error("Chat not found")
-    if (chat.userId != userId && chat.nurseId != userId) {
-      throw new Error("You are not authorized to access this chat.")
-    }
+    if (chat.userId != userId && chat.nurseId != userId) throw new Error("You are not authorized to access this chat.")
     return chat
   }
 

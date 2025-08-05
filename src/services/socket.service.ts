@@ -1,7 +1,8 @@
 import { Server as SocketIOServer, Socket } from "socket.io"
 import { Server as HttpServer } from "http"
 import logger from "../lib/logger"
-import ChatsSocketController from "../controllers/socket/chats-socket.controller"
+import ChatsSocketController from "../controllers/socket/chats.socket.controller"
+import RequestsSocketController from "../controllers/socket/request.socket.controller"
 
 class SocketIOService {
   private io: SocketIOServer | null = null
@@ -21,7 +22,10 @@ class SocketIOService {
 
     logger.info("✅ Socket.IO server initialized.")
 
-    this.io.on("connection", (socket) => ChatsSocketController.handleConnection(socket, this.io!))
+    this.io.on("connection", (socket) => {
+      ChatsSocketController.handleConnection(socket, this.io!)
+      RequestsSocketController.handleConnection(socket, this.io!)
+    })
     this.io.on("error", (error) => this.handleServerError(error))
 
     this.io.on("connection", (socket) => this.handleConnection(socket))

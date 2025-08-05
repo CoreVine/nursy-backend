@@ -9,8 +9,8 @@ import { isVerifiedMiddleware } from "../middleware/is-verified.middleware"
 import { validateBody } from "../middleware/validate.middleware"
 
 import { z } from "zod"
-import { OrderTypeList } from "../lib/type-lists"
-import { OrderType } from "@prisma/client"
+import { TimeTypeList } from "../lib/type-lists"
+import { TimeType } from "@prisma/client"
 
 export const patientRouter = Router()
 export const decimalString = z.string().regex(/^\d{1,6}(\.\d{1,2})?$/, "Invalid decimal format (max 8 digits, 2 decimal places)")
@@ -25,7 +25,7 @@ export const CreateRequestSchema = z.object({
   locationUrl: z.string().url("Location URL must be a valid URL").optional(),
   latitude: z.coerce.number(),
   longitude: z.coerce.number(),
-  type: z.enum([OrderType.OnSpot, OrderType.Scheduled]),
+  type: z.enum([TimeType.OnSpot, TimeType.Scheduled]),
   date: z.string().regex(RegEx.date, "Invalid Date. Must be of format (YYYY-MM-DD)").optional(),
   time: z.string().regex(RegEx.time, "Invalid Time. Must be of format (HH:MM:SS)").optional(),
   additionalInformation: z.string().optional(),

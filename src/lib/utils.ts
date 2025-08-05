@@ -16,10 +16,18 @@ export function generateSixDigitCode(): number {
   return Math.floor(100000 + Math.random() * 900000)
 }
 
-export function extractPublicId(url: string): string | null {
-  const regex = /\/upload\/v\d+\/(.+)$/
-  const match = url.match(regex)
-  return match ? match[1] : null
+export function extractCloudinaryPublicId(path: string): string {
+  let cleanedPath = path
+  try {
+    if (path.startsWith("http")) {
+      const url = new URL(path)
+      cleanedPath = url.pathname
+
+      cleanedPath = cleanedPath.replace(/^\/[^\/]+\/image\/upload\/v\d+\//, "")
+      cleanedPath = cleanedPath.replace(/^\/+/, "")
+    }
+  } catch {}
+  return cleanedPath.replace(/\.[^/.]+$/, "")
 }
 
 export function select(array: string[]) {
