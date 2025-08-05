@@ -50,7 +50,7 @@ export const UpdateLocationSchema = z.object({
 
 export const UpdatePasswordSchema = z
   .object({
-    currentPassword: z.string().min(6, "Current Password must be at least 6 characters long"),
+    currentPassword: z.string(),
     newPassword: z.string().min(6, "New password must be at least 6 characters long"),
     newPasswordConfirmation: z.string().min(6, "New password confirmation must be at least 6 characters long")
   })

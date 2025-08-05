@@ -28,7 +28,7 @@ enum PaymentStatus {
   Pending
   Completed
   Failed
-}
+} 
 
 enum PaymentType {
   Hourly
