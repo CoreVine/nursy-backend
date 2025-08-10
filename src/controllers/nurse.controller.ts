@@ -14,8 +14,8 @@ class NurseController {
         page: req.query.page ? Number(req.query.page) : 1,
         pageSize: req.query.pageSize ? Number(req.query.pageSize) : 10,
         where: {
-          userId: req.user?.id,
-          status: { in: [OrderStatus.InProgress, OrderStatus.Rejected, OrderStatus.Completed] }
+          nurseId: req.user?.id,
+          status: { in: [OrderStatus.Completed] }
         },
         include: {
           service: true,
