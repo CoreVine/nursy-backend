@@ -1,8 +1,9 @@
 import { OrderStatus, PaymentStatus } from "@prisma/client"
-import db from "../services/prisma.service"
-import { BaseModel } from "./model"
 import { DatabaseError } from "../errors"
+import { BaseModel } from "./model"
+
 import logger from "../lib/logger"
+import db from "../services/prisma.service"
 
 export class OrderModel extends BaseModel<typeof db.order> {
   static model = db.order
@@ -22,14 +23,15 @@ export class OrderModel extends BaseModel<typeof db.order> {
       })
       await db.inProgressOrder.updateMany({
         where: { orderId: Number(id) },
-        data: { status: OrderStatus.Completed }
+        data: { status: "Completed" }
       })
-      await db.orderPayment.update({
+      await db.orderPayment.updateMany({
         where: { orderId: Number(id) },
-        data: { status: PaymentStatus.Paid }
+        data: { status: "Paid" }
       })
       return order
     } catch (error) {
+      console.error(error)
       logger.error("Failed to verify order:", error)
       throw new DatabaseError("Failed to verify order")
     }

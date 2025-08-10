@@ -10,6 +10,10 @@ import { UserModel } from "../data-access/user"
 import { UserType } from "@prisma/client"
 
 import { json } from "../lib/helpers"
+import emailService from "../services/email.service"
+import { generateSixDigitCode } from "../lib/utils"
+import { CONFIG } from "../config"
+import moment from "moment"
 
 export default class NurseAuthController {
   static async login(req: Request, res: Response, next: NextFunction) {
@@ -99,6 +103,18 @@ export default class NurseAuthController {
       })
 
       if (!user) throw new BadRequestError("Failed to create user")
+
+      const randomInt = generateSixDigitCode()
+      const hashedRandomInt = await bcrypt.hash(randomInt.toString(), 10)
+      const verification = await UserModel.createVerificationToken(user.id, hashedRandomInt)
+
+      const emailTemplate = await emailService.sendTemplateEmail(user.email, CONFIG.appName, "account-verification", {
+        name: user.username,
+        verificationCode: randomInt,
+        companyName: CONFIG.appName,
+        currentYear: new Date().getFullYear(),
+        expiryMinutes: moment(verification?.expiresAt).format("MMMM Do YYYY, h:mm:ss A")
+      })
 
       await db.userData.create({
         data: {

@@ -179,7 +179,6 @@ model Order {
 model InProgressOrder {
   id      Int @id @default(autoincrement())
   userId  Int
-  nurseId Int
   orderId Int
   status  OrderStatus @default(InProgress)
   
@@ -193,7 +192,6 @@ model OrderPayment {
   id          Int      @id @default(autoincrement())
   orderId     Int @unique
   userId      Int
-  nurseId     Int @default(1)
   
   totalHours    Float? 
   serviceAmount Float? 

@@ -165,7 +165,6 @@ class RequestsSocketController extends BaseSocketController {
 
     const inProgressOrder = await db.inProgressOrder.create({
       data: {
-        nurseId: nurse.id,
         orderId: updatedOrder.id,
         userId: order.userId,
         status: OrderStatus.InProgress
