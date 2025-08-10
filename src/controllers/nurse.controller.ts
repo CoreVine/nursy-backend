@@ -19,6 +19,7 @@ class NurseController {
         },
         include: {
           service: true,
+          specificService: true,
           nurse: {
             select: {
               id: true,

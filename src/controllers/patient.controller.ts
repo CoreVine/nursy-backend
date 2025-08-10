@@ -3,7 +3,6 @@ import { json } from "../lib/helpers"
 import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors"
 import { NextFunction, Request, Response } from "express"
 import { OrderStatus, TimeType, UserType } from "@prisma/client"
-import { CreateRequestPaymentSchema } from "../routes/patient.route"
 import { OrderStatusList } from "../lib/type-lists"
 import { OrderModel } from "../data-access/order"
 

@@ -11,10 +11,6 @@ import { z } from "zod"
 export const patientRouter = Router()
 export const decimalString = z.string().regex(/^\d{1,6}(\.\d{1,2})?$/, "Invalid decimal format (max 8 digits, 2 decimal places)")
 
-export const CreateRequestPaymentSchema = z.object({
-  totalHours: z.coerce.number().positive()
-})
-
 patientRouter.get("/requests", isAuthenticatedMiddleware, isVerifiedMiddleware, isUserOfTypeMiddleware("Patient"), PatientController.getRequests)
 patientRouter.get("/requests/:orderId", isAuthenticatedMiddleware, isVerifiedMiddleware, isUserOfTypeMiddleware("Patient"), PatientController.getRequestById)
 
