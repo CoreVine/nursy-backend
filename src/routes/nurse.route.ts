@@ -8,8 +8,7 @@ import NurseController from "../controllers/nurse.controller"
 
 export const nurseRouter = Router()
 
-nurseRouter.get("/requests", isAuthenticatedMiddleware, isVerifiedMiddleware, isUserOfTypeMiddleware("Nurse"), NurseController.getNurseRequests)
-nurseRouter.get("/requests/:orderId", isAuthenticatedMiddleware, isVerifiedMiddleware, isUserOfTypeMiddleware("Nurse"), NurseController.getNurseRequestById)
-nurseRouter.patch("/requests/:orderId", isAuthenticatedMiddleware, isVerifiedMiddleware, isUserOfTypeMiddleware("Nurse"), NurseController.changeRequestStatus)
+nurseRouter.get("/requests", isAuthenticatedMiddleware, isVerifiedMiddleware, isUserOfTypeMiddleware("Nurse"), NurseController.getRequests)
+nurseRouter.get("/requests/:orderId", isAuthenticatedMiddleware, isVerifiedMiddleware, isUserOfTypeMiddleware("Nurse"), NurseController.getRequestById)
 
 export default nurseRouter
