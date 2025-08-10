@@ -33,7 +33,7 @@ class PaymentController {
         }
       }
     } catch (error) {
-      return next(error)
+      next(error)
     }
   }
 }

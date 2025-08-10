@@ -24,7 +24,7 @@ class DataController {
         res
       })
     } catch (error) {
-      return next(error)
+      next(error)
     }
   }
   static async getServiceById(req: Request, res: Response, next: NextFunction) {
@@ -47,7 +47,7 @@ class DataController {
         res
       })
     } catch (error) {
-      return next(error)
+      next(error)
     }
   }
 
@@ -65,7 +65,7 @@ class DataController {
         res
       })
     } catch (error) {
-      return next(error)
+      next(error)
     }
   }
   static async getSpecificServiceById(req: Request, res: Response, next: NextFunction) {
@@ -88,7 +88,7 @@ class DataController {
         res
       })
     } catch (error) {
-      return next(error)
+      next(error)
     }
   }
 
@@ -106,7 +106,7 @@ class DataController {
         res
       })
     } catch (error) {
-      return next(error)
+      next(error)
     }
   }
   static async getIllnessTypeById(req: Request, res: Response, next: NextFunction) {
@@ -129,7 +129,7 @@ class DataController {
         res
       })
     } catch (error) {
-      return next(error)
+      next(error)
     }
   }
 }

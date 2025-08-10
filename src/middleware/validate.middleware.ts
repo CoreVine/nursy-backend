@@ -30,6 +30,6 @@ export const validateBody = (schema: AnyZodObject) => async (req: Request, res: 
       const errorMessage = error.flatten().formErrors.join(", ") || Object.values(error.flatten().fieldErrors).flat().join(", ")
       return next(new ValidationError(`Validation failed: ${errorMessage}`, error))
     }
-    return next(error)
+    next(error)
   }
 }

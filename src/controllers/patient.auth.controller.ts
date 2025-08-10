@@ -204,7 +204,7 @@ export default class PatientAuthController {
         res
       })
     } catch (error) {
-      return next(error)
+      next(error)
     }
   }
 
@@ -236,7 +236,7 @@ export default class PatientAuthController {
         res
       })
     } catch (error) {
-      return next(error)
+      next(error)
     }
   }
 
@@ -265,7 +265,7 @@ export default class PatientAuthController {
         res
       })
     } catch (error) {
-      return next(error)
+      next(error)
     }
   }
 
