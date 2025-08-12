@@ -63,7 +63,8 @@ class ChatsSocketController extends BaseSocketController {
       select: { userId: true, nurseId: true }
     })
     if (!chat) throw new NotFoundError("Chat not found")
-    if (chat.userId != userId && chat.nurseId != userId) throw new ForbiddenError("You are not authorized to access this chat.")
+    const isAuthorized = chat.userId === userId || chat.nurseId === userId
+    if (!isAuthorized) throw new ForbiddenError("You are not authorized to access this chat.")
     return chat
   }
 
