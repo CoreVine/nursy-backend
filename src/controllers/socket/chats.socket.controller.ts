@@ -4,6 +4,9 @@ import { Socket, Server as SocketIOServer } from "socket.io"
 import logger from "../../lib/logger"
 import db from "../../services/prisma.service"
 
+import { NotFoundError, ForbiddenError, BadRequestError } from "../../errors"
+import { toSocketError } from "../../lib/utils"
+
 interface JoinChatPayload {
   chatId: number
 }
@@ -21,19 +24,37 @@ class ChatsSocketController extends BaseSocketController {
   static handleConnection(socket: Socket, io: SocketIOServer) {
     logger.info(`[ChatsSocketController]: Client connected: ${socket.id}`)
 
-    socket.on("joinChat", (payload: JoinChatPayload) => ChatsSocketController.handleJoinChat(socket, payload))
-    socket.on("leaveChat", (payload: LeaveChatPayload) => ChatsSocketController.handleLeaveChat(socket, payload))
-    socket.on("sendMessage", (payload: SendMessagePayload) => ChatsSocketController.handleSendMessage(socket, io, payload))
-
-    socket.on("disconnect", (reason: string) => {
-      logger.info(`Socket.IO client disconnected: ${socket.id}, Reason: ${reason}`)
+    socket.on("chats.join", async (payload: JoinChatPayload) => {
+      try {
+        const data = await ChatsSocketController.handleJoinChat(socket, payload)
+        socket.emit("joinedChat", { success: true, data })
+        socket.to(`chat_${payload.chatId}`).emit("userJoined", { success: true, data })
+      } catch (err) {
+        logger.warn(`[ChatsSocketController]: joinChat error:`, err)
+        socket.emit("joinedChat", { success: false, error: toSocketError(err) })
+      }
     })
 
-    socket.on("error", (error: Error) => {
-      logger.error(`Socket.IO client error on ${socket.id}: ${error.message}`, error)
+    socket.on("chats.leave", async (payload: LeaveChatPayload) => {
+      try {
+        const data = await ChatsSocketController.handleLeaveChat(socket, payload)
+        socket.emit("leaveChat", { success: true, data })
+        socket.to(`chat_${payload.chatId}`).emit("userLeft", { success: true, data })
+      } catch (err) {
+        logger.warn(`[ChatsSocketController]: leaveChat error:`, err)
+        socket.emit("leaveChat", { success: false, error: toSocketError(err) })
+      }
     })
 
-    socket.emit("welcome", `Welcome, ${socket.id}! You are connected to the chat.`)
+    socket.on("chats.sendMessage", async (payload: SendMessagePayload) => {
+      try {
+        const message = await ChatsSocketController.handleSendMessage(socket, io, payload)
+        socket.emit("messageSent", { success: true, data: message })
+      } catch (err) {
+        logger.warn(`[ChatsSocketController]: sendMessage error:`, err)
+        socket.emit("messageSent", { success: false, error: toSocketError(err) })
+      }
+    })
   }
 
   static async authorizeChatAccess(userId: number, chatId: number) {
@@ -41,74 +62,62 @@ class ChatsSocketController extends BaseSocketController {
       where: { id: Number(chatId) },
       select: { userId: true, nurseId: true }
     })
-    if (!chat) throw new Error("Chat not found")
-    if (chat.userId != userId && chat.nurseId != userId) throw new Error("You are not authorized to access this chat.")
+    if (!chat) throw new NotFoundError("Chat not found")
+    if (chat.userId != userId && chat.nurseId != userId) throw new ForbiddenError("You are not authorized to access this chat.")
     return chat
   }
 
   static async handleJoinChat(socket: Socket, payload: JoinChatPayload) {
-    try {
-      const user = await ChatsSocketController.getUserFromSocket(socket)
-      await ChatsSocketController.authorizeChatAccess(user.id, payload.chatId)
+    const user = await ChatsSocketController.getUserFromSocket(socket)
+    await ChatsSocketController.authorizeChatAccess(user.id, payload.chatId)
 
-      socket.join(`chat_${payload.chatId}`)
-      logger.info(`Socket ${socket.id} (user ${user.id}) joined chat_${payload.chatId}`)
-      socket.to(`chat_${payload.chatId}`).emit("userJoined", { userId: user.id, chatId: payload.chatId })
-      socket.emit("joinedChat", { chatId: payload.chatId, userId: user.id })
-    } catch (error: any) {
-      logger.warn(`joinChat error: ${error.message}`)
-      socket.emit("error", { message: error.message || "Failed to join chat" })
-    }
+    socket.join(`chat_${payload.chatId}`)
+    logger.info(`Socket ${socket.id} (user ${user.id}) joined chat_${payload.chatId}`)
+    return { chatId: payload.chatId, userId: user.id }
   }
 
   static async handleLeaveChat(socket: Socket, payload: LeaveChatPayload) {
-    try {
-      const user = await ChatsSocketController.getUserFromSocket(socket)
-      await ChatsSocketController.authorizeChatAccess(user.id, payload.chatId)
+    const user = await ChatsSocketController.getUserFromSocket(socket)
+    await ChatsSocketController.authorizeChatAccess(user.id, payload.chatId)
 
-      socket.leave(`chat_${payload.chatId}`)
-      logger.info(`Socket ${socket.id} (user ${user.id}) left chat_${payload.chatId}`)
-      socket.to(`chat_${payload.chatId}`).emit("userLeft", { userId: user.id, chatId: payload.chatId })
-      socket.emit("leaveChat", { chatId: payload.chatId, userId: user.id })
-    } catch (error: any) {
-      logger.warn(`leaveChat error: ${error.message}`)
-      socket.emit("error", { message: error.message || "Failed to leave chat" })
-    }
+    socket.leave(`chat_${payload.chatId}`)
+    logger.info(`Socket ${socket.id} (user ${user.id}) left chat_${payload.chatId}`)
+    return { chatId: payload.chatId, userId: user.id }
   }
 
   static async handleSendMessage(socket: Socket, io: SocketIOServer, payload: SendMessagePayload) {
-    try {
-      const user = await ChatsSocketController.getUserFromSocket(socket)
-      await ChatsSocketController.authorizeChatAccess(user.id, payload.chatId)
+    const user = await ChatsSocketController.getUserFromSocket(socket)
+    await ChatsSocketController.authorizeChatAccess(user.id, payload.chatId)
 
-      const message = await db.message.create({
-        data: {
-          chatId: Number(payload.chatId),
-          senderId: Number(user.id),
-          content: payload.content,
-          attachment: payload.attachment
-        },
-        include: {
-          sender: {
-            select: {
-              id: true,
-              email: true,
-              phoneNumber: true,
-              username: true,
-              isVerified: true
-            }
+    if (!payload.content?.trim() && !payload.attachment) {
+      throw new BadRequestError("Message content or attachment is required")
+    }
+
+    const message = await db.message.create({
+      data: {
+        chatId: Number(payload.chatId),
+        senderId: Number(user.id),
+        content: payload.content,
+        attachment: payload.attachment
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            email: true,
+            phoneNumber: true,
+            username: true,
+            isVerified: true
           }
         }
-      })
-      if (!message) {
-        throw new Error("Failed to create message")
       }
-      logger.info(`(user ${user.id}) sent message in chat_${payload.chatId}`)
-      io.to(`chat_${payload.chatId}`).emit("receiveMessage", message)
-    } catch (error: any) {
-      logger.warn(`sendMessage error: ${error.message}`)
-      socket.emit("error", { message: error.message || "Failed to send message" })
+    })
+    if (!message) {
+      throw new BadRequestError("Failed to create message")
     }
+    logger.info(`(user ${user.id}) sent message in chat_${payload.chatId}`)
+    io.to(`chat_${payload.chatId}`).emit("receiveMessage", { success: true, data: message })
+    return message
   }
 }
 

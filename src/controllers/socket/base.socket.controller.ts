@@ -1,7 +1,8 @@
-import { Socket } from "socket.io"
-import { JwtPayload } from "../../types"
 import jwtService from "../../services/jwt.service"
 import logger from "../../lib/logger"
+
+import { JwtPayload } from "../../types"
+import { Socket } from "socket.io"
 
 export class BaseSocketController {
   static async getUserFromSocket(socket: Socket): Promise<JwtPayload> {

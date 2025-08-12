@@ -71,14 +71,13 @@ model User {
   nurseChats    Chat[] @relation("nurse_chats")
   messages      Message[] @relation("user_messages")
   payments      OrderPayment[]
+  refusedOrders RefusedOrder[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
 
   @@map("users")
 }
-
-
 
 model VerificationToken {
   id        Int      @id @default(autoincrement())
@@ -172,6 +171,8 @@ model Order {
   nurse             User? @relation("nurse_requests", fields: [nurseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   payment           OrderPayment?
   service           Service @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  inProgressOrder   InProgressOrder?
+  refusedOrders     RefusedOrder[]
 
   @@map("orders")
 }
@@ -179,13 +180,29 @@ model Order {
 model InProgressOrder {
   id      Int @id @default(autoincrement())
   userId  Int
-  orderId Int
+  orderId Int @unique
   status  OrderStatus @default(InProgress)
+
+  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
 
   @@map("in_progress_orders")
+}
+
+model RefusedOrder { 
+  id      Int @id @default(autoincrement())
+  nurseId Int
+  orderId Int @unique
+
+  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  nurse   User @relation(fields: [nurseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
+
+  @@map("refused_orders")
 }
 
 model OrderPayment {
