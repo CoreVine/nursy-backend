@@ -28,7 +28,7 @@ class ChatsSocketController extends BaseSocketController {
       try {
         const data = await ChatsSocketController.handleJoinChat(socket, payload)
         socket.emit("chats.joined", { success: true, data })
-        socket.to(`chat_${payload.chatId}`).emit("userJoined", { success: true, data })
+        socket.to(`chat_${payload.chatId}`).emit("chats.user.joined", { success: true, data })
       } catch (err) {
         logger.warn(`[ChatsSocketController]: joinChat error:`, err)
         socket.emit("chats.joined", { success: false, error: toSocketError(err) })
@@ -39,7 +39,7 @@ class ChatsSocketController extends BaseSocketController {
       try {
         const data = await ChatsSocketController.handleLeaveChat(socket, payload)
         socket.emit("chats.left", { success: true, data })
-        socket.to(`chat_${payload.chatId}`).emit("userLeft", { success: true, data })
+        socket.to(`chat_${payload.chatId}`).emit("chats.user.left", { success: true, data })
       } catch (err) {
         logger.warn(`[ChatsSocketController]: leaveChat error:`, err)
         socket.emit("chats.left", { success: false, error: toSocketError(err) })
