@@ -95,6 +95,7 @@ class RequestsSocketController extends BaseSocketController {
         socket.emit("requests.patient.created", { success: true, data })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error creating order:`, err)
+        socket.emit("requests.nurse.search")
         socket.emit("requests.patient.created", { success: false, error: toSocketError(err) })
       }
     })
@@ -107,6 +108,7 @@ class RequestsSocketController extends BaseSocketController {
         socket.to(`requests.rooms.${data.id}`).emit("requests.patient.accepted", { success: true, data })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error accepting request by patient:`, err)
+        socket.emit("requests.nurse.search")
         socket.emit("requests.patient.accepted", { success: false, error: toSocketError(err) })
       }
     })
@@ -119,6 +121,7 @@ class RequestsSocketController extends BaseSocketController {
         socket.leave(`requests.rooms.${data.id}`)
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error refusing request by patient:`, err)
+        socket.emit("requests.nurse.search")
         socket.emit("requests.patient.refused", { success: false, error: toSocketError(err) })
       }
     })
@@ -130,6 +133,7 @@ class RequestsSocketController extends BaseSocketController {
         socket.emit("requests.patient.payments.initialized", { success: true, data: paymentData })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error initializing payment:`, err)
+        socket.emit("requests.nurse.search")
         socket.emit("requests.patient.payments.initialized", { success: false, error: toSocketError(err) })
       }
     })
@@ -141,6 +145,7 @@ class RequestsSocketController extends BaseSocketController {
         socket.emit("requests.patient.payments.fetched", { success: true, data: paymentData })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error fetching payment:`, err)
+        socket.emit("requests.nurse.search")
         socket.emit("requests.patient.payments.fetched", { success: false, error: toSocketError(err) })
       }
     })
