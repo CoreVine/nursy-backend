@@ -27,32 +27,32 @@ class ChatsSocketController extends BaseSocketController {
     socket.on("chats.join", async (payload: JoinChatPayload) => {
       try {
         const data = await ChatsSocketController.handleJoinChat(socket, payload)
-        socket.emit("joinedChat", { success: true, data })
+        socket.emit("chats.joined", { success: true, data })
         socket.to(`chat_${payload.chatId}`).emit("userJoined", { success: true, data })
       } catch (err) {
         logger.warn(`[ChatsSocketController]: joinChat error:`, err)
-        socket.emit("joinedChat", { success: false, error: toSocketError(err) })
+        socket.emit("chats.joined", { success: false, error: toSocketError(err) })
       }
     })
 
     socket.on("chats.leave", async (payload: LeaveChatPayload) => {
       try {
         const data = await ChatsSocketController.handleLeaveChat(socket, payload)
-        socket.emit("leaveChat", { success: true, data })
+        socket.emit("chats.left", { success: true, data })
         socket.to(`chat_${payload.chatId}`).emit("userLeft", { success: true, data })
       } catch (err) {
         logger.warn(`[ChatsSocketController]: leaveChat error:`, err)
-        socket.emit("leaveChat", { success: false, error: toSocketError(err) })
+        socket.emit("chats.left", { success: false, error: toSocketError(err) })
       }
     })
 
     socket.on("chats.sendMessage", async (payload: SendMessagePayload) => {
       try {
         const message = await ChatsSocketController.handleSendMessage(socket, io, payload)
-        socket.emit("messageSent", { success: true, data: message })
+        socket.emit("chats.messageSent", { success: true, data: message })
       } catch (err) {
         logger.warn(`[ChatsSocketController]: sendMessage error:`, err)
-        socket.emit("messageSent", { success: false, error: toSocketError(err) })
+        socket.emit("chats.messageSent", { success: false, error: toSocketError(err) })
       }
     })
   }
