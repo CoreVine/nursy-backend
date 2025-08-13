@@ -53,7 +53,6 @@ class RequestsSocketController extends BaseSocketController {
     socket.on("requests.nurse.accept", async (payload: AcceptRequestPayload) => {
       socket.join(`requests.rooms.${payload.orderId}`)
       try {
-        console.dir(payload, { depth: null })
         const data = await this.handleAcceptRequestByNurse(socket, payload)
         io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.accepted", { success: true, data })
       } catch (err) {
