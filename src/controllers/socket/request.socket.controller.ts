@@ -39,10 +39,10 @@ class RequestsSocketController extends BaseSocketController {
     socket.on("requests.nurse.search", async () => {
       try {
         const fetchedRequests = await this.fetchNearbyRequestsForNurse(socket)
-        socket.emit("requests.nurse.fetched", { success: true, data: fetchedRequests })
+        io.emit("requests.nurse.fetched", { success: true, data: fetchedRequests })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error fetching requests:`, err)
-        socket.emit("requests.nurse.fetched", { success: false, error: toSocketError(err) })
+        io.emit("requests.nurse.fetched", { success: false, error: toSocketError(err) })
       }
     })
 
