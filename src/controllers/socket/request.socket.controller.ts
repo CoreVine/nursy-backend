@@ -51,7 +51,6 @@ class RequestsSocketController extends BaseSocketController {
         console.dir(payload, { depth: null })
         const data = await this.handleAcceptRequestByNurse(socket, payload)
         socket.emit("requests.nurse.accepted", { success: true, data })
-        socket.emit("requests.nurse.search")
         socket.join(`requests.rooms.${data.id}`)
         socket.to(`requests.rooms.${data.id}`).emit("requests.currentPatientRequest", { success: true, data })
       } catch (err) {
@@ -63,13 +62,11 @@ class RequestsSocketController extends BaseSocketController {
     socket.on("requests.nurse.refuse", async (payload: AcceptRequestPayload) => {
       try {
         const data = await this.handleRefuseRequestByNurse(socket, payload)
-        socket.emit("requests.nurse.search")
         socket.emit("requests.nurse.refused", { success: true, data })
         socket.leave(`requests.rooms.${data.id}`)
         socket.to(`requests.rooms.${data.id}`).emit("requests.currentPatientRequest", { success: true, data })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error refusing request:`, err)
-        socket.emit("requests.nurse.search")
         socket.emit("requests.nurse.refused", { success: false, error: toSocketError(err) })
       }
     })
@@ -82,7 +79,6 @@ class RequestsSocketController extends BaseSocketController {
         socket.emit("requests.patient.fetched", { success: true, data: fetchedRequests })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error fetching requests for patient:`, err)
-        socket.emit("requests.nurse.search")
         socket.emit("requests.patient.fetched", { success: false, error: toSocketError(err) })
       }
     })
@@ -90,63 +86,56 @@ class RequestsSocketController extends BaseSocketController {
     socket.on("requests.patient.create", async (payload: CreateOrderPayload) => {
       try {
         const data = await this.createOrderByPatient(socket, payload)
-        socket.emit("requests.nurse.search")
         socket.join(`requests.rooms.${data.id}`)
-        socket.emit("requests.patient.created", { success: true, data })
+        socket.emit("requests.nurse.search")
+        io.emit("requests.patient.created", { success: true, data })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error creating order:`, err)
-        socket.emit("requests.nurse.search")
-        socket.emit("requests.patient.created", { success: false, error: toSocketError(err) })
+        io.emit("requests.patient.created", { success: false, error: toSocketError(err) })
       }
     })
 
     socket.on("requests.patient.accept", async (payload: AcceptRequestPayload) => {
       try {
         const data = await this.handleAcceptRequestByPatient(socket, payload)
-        socket.emit("requests.nurse.search")
         socket.join(`requests.rooms.${data.id}`)
-        socket.to(`requests.rooms.${data.id}`).emit("requests.patient.accepted", { success: true, data })
+        io.to(`requests.rooms.${data.id}`).emit("requests.patient.accepted", { success: true, data })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error accepting request by patient:`, err)
-        socket.emit("requests.nurse.search")
-        socket.emit("requests.patient.accepted", { success: false, error: toSocketError(err) })
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.patient.accepted", { success: false, error: toSocketError(err) })
       }
     })
 
     socket.on("requests.patient.refuse", async (payload: AcceptRequestPayload) => {
       try {
         const data = await this.handleRefuseRequestByPatient(socket, payload)
-        socket.emit("requests.nurse.search")
-        socket.to(`requests.rooms.${data.id}`).emit("requests.patient.refused", { success: true, data })
+        socket.join(`requests.rooms.${data.id}`)
+        io.to(`requests.rooms.${data.id}`).emit("requests.patient.refused", { success: true, data })
         socket.leave(`requests.rooms.${data.id}`)
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error refusing request by patient:`, err)
-        socket.emit("requests.nurse.search")
-        socket.emit("requests.patient.refused", { success: false, error: toSocketError(err) })
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.patient.refused", { success: false, error: toSocketError(err) })
       }
     })
 
     socket.on("requests.patient.payments.init", async (payload: InitPaymentPayload) => {
       try {
         const paymentData = await this.initPayment(socket, payload)
-        socket.emit("requests.nurse.search")
-        socket.emit("requests.patient.payments.initialized", { success: true, data: paymentData })
+        socket.join(`requests.rooms.${payload.orderId}`)
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.patient.payments.initialized", { success: true, data: paymentData })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error initializing payment:`, err)
-        socket.emit("requests.nurse.search")
-        socket.emit("requests.patient.payments.initialized", { success: false, error: toSocketError(err) })
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.patient.payments.initialized", { success: false, error: toSocketError(err) })
       }
     })
 
     socket.on("requests.patient.payments.fetch", async (orderId: number) => {
       try {
         const paymentData = await this.fetchPayment(socket, orderId)
-        socket.emit("requests.nurse.search")
-        socket.emit("requests.patient.payments.fetched", { success: true, data: paymentData })
+        io.emit("requests.patient.payments.fetched", { success: true, data: paymentData })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error fetching payment:`, err)
-        socket.emit("requests.nurse.search")
-        socket.emit("requests.patient.payments.fetched", { success: false, error: toSocketError(err) })
+        io.emit("requests.patient.payments.fetched", { success: false, error: toSocketError(err) })
       }
     })
   }
@@ -162,7 +151,7 @@ class RequestsSocketController extends BaseSocketController {
       where: { userId: user.id, status: OrderStatus.Pending, nurseId: null }
     })
 
-    //if (findPendingOrder) throw new BadRequestError("You already have a pending order")
+    // if (findPendingOrder) throw new BadRequestError("You already have a pending order")
 
     const parsed = CreateOrderSchema.safeParse(payload)
     if (!parsed.success) throw new ValidationError("Validation failed", parsed.error)
