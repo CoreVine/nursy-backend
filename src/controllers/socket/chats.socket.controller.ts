@@ -49,10 +49,10 @@ class ChatsSocketController extends BaseSocketController {
     socket.on("chats.sendMessage", async (payload: SendMessagePayload) => {
       try {
         const message = await ChatsSocketController.handleSendMessage(socket, io, payload)
-        socket.to(`chat_${payload.chatId}`).emit("chats.messageSent", { success: true, data: message })
+        io.to(`chat_${payload.chatId}`).emit("chats.messageSent", { success: true, data: message })
       } catch (err) {
         logger.warn(`[ChatsSocketController]: sendMessage error:`, err)
-        socket.to(`chat_${payload.chatId}`).emit("chats.messageSent", { success: false, error: toSocketError(err) })
+        io.to(`chat_${payload.chatId}`).emit("chats.messageSent", { success: false, error: toSocketError(err) })
       }
     })
   }
