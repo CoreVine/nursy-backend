@@ -36,6 +36,10 @@ class RequestsSocketController extends BaseSocketController {
 
     // NURSE FLOW
 
+    socket.on("requests.join", (orderId) => {
+      socket.join(`requests.rooms.${orderId}`)
+    })
+
     socket.on("requests.nurse.search", async () => {
       try {
         const fetchedRequests = await this.fetchNearbyRequestsForNurse(socket)
@@ -47,27 +51,27 @@ class RequestsSocketController extends BaseSocketController {
     })
 
     socket.on("requests.nurse.accept", async (payload: AcceptRequestPayload) => {
+      socket.join(`requests.rooms.${payload.orderId}`)
       try {
         console.dir(payload, { depth: null })
         const data = await this.handleAcceptRequestByNurse(socket, payload)
-        socket.join(`requests.rooms.${data.id}`)
-        io.to(`requests.rooms.${data.id}`).emit("requests.nurse.accepted", { success: true, data })
-        io.to(`requests.rooms.${data.id}`).emit("requests.currentPatientRequest", { success: true, data })
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.accepted", { success: true, data })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error accepting request:`, err)
-        io.to(`requests.rooms.${payload.orderId}`).emit("requests.accepted", { success: false, error: toSocketError(err) })
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.accepted", { success: false, error: toSocketError(err) })
       }
     })
 
     socket.on("requests.nurse.refuse", async (payload: AcceptRequestPayload) => {
+      socket.join(`requests.rooms.${payload.orderId}`)
       try {
         const data = await this.handleRefuseRequestByNurse(socket, payload)
         io.to(`requests.rooms.${data.id}`).emit("requests.nurse.refused", { success: true, data })
-        socket.to(`requests.rooms.${data.id}`).emit("requests.currentPatientRequest", { success: true, data })
+        io.to(`requests.rooms.${data.id}`).emit("requests.currentPatientRequest", { success: true, data })
         socket.leave(`requests.rooms.${data.id}`)
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error refusing request:`, err)
-        socket.emit("requests.nurse.refused", { success: false, error: toSocketError(err) })
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.refused", { success: false, error: toSocketError(err) })
       }
     })
 
@@ -96,9 +100,9 @@ class RequestsSocketController extends BaseSocketController {
     })
 
     socket.on("requests.patient.accept", async (payload: AcceptRequestPayload) => {
+      socket.join(`requests.rooms.${payload.orderId}`)
       try {
         const data = await this.handleAcceptRequestByPatient(socket, payload)
-        socket.join(`requests.rooms.${data.id}`)
         io.to(`requests.rooms.${data.id}`).emit("requests.patient.accepted", { success: true, data })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error accepting request by patient:`, err)
@@ -107,9 +111,9 @@ class RequestsSocketController extends BaseSocketController {
     })
 
     socket.on("requests.patient.refuse", async (payload: AcceptRequestPayload) => {
+      socket.join(`requests.rooms.${payload.orderId}`)
       try {
         const data = await this.handleRefuseRequestByPatient(socket, payload)
-        socket.join(`requests.rooms.${data.id}`)
         io.to(`requests.rooms.${data.id}`).emit("requests.patient.refused", { success: true, data })
         socket.leave(`requests.rooms.${data.id}`)
       } catch (err) {
@@ -119,9 +123,9 @@ class RequestsSocketController extends BaseSocketController {
     })
 
     socket.on("requests.patient.payments.init", async (payload: InitPaymentPayload) => {
+      socket.join(`requests.rooms.${payload.orderId}`)
       try {
         const paymentData = await this.initPayment(socket, payload)
-        socket.join(`requests.rooms.${payload.orderId}`)
         io.to(`requests.rooms.${payload.orderId}`).emit("requests.patient.payments.initialized", { success: true, data: paymentData })
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error initializing payment:`, err)
@@ -130,6 +134,7 @@ class RequestsSocketController extends BaseSocketController {
     })
 
     socket.on("requests.patient.payments.fetch", async (orderId: number) => {
+      socket.join(`requests.rooms.${orderId}`)
       try {
         const paymentData = await this.fetchPayment(socket, orderId)
         io.emit("requests.patient.payments.fetched", { success: true, data: paymentData })
