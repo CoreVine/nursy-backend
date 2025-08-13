@@ -200,7 +200,7 @@ class RequestsSocketController extends BaseSocketController {
 
     if (!nurse) throw new NotFoundError("Nurse not found")
     if (nurse.latitude == null || nurse.longitude == null) throw new BadRequestError("Nurse location is missing")
-    if (nurse.type !== UserType.Nurse) throw new ForbiddenError("User is not a nurse")
+    //if (nurse.type !== UserType.Nurse) throw new ForbiddenError("User is not a nurse")
 
     const refusedOrders = await db.refusedOrder.findMany({
       where: { nurseId: nurse.id },
