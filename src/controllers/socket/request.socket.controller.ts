@@ -211,7 +211,7 @@ class RequestsSocketController extends BaseSocketController {
       return dist <= 20
     })
 
-    return requests
+    return nearbyRequests
   }
 
   static async fetchRequestsForPatient(socket: Socket) {
