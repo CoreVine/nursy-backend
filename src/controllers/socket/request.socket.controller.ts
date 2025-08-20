@@ -211,8 +211,9 @@ class RequestsSocketController extends BaseSocketController {
       where: {
         OR: [{ nurseId: null }, { nurseId: nurse.id }],
         AND: [{ id: { notIn: refusedOrders.map((ro) => ro.orderId) } }],
-        status: { in: [OrderStatus.Pending, OrderStatus.Stale, OrderStatus.Accepted] }
-      }
+        status: { in: [OrderStatus.Pending, OrderStatus.Stale, OrderStatus.Completed, OrderStatus.Accepted] }
+      },
+      orderBy: { id: "desc" }
     })
 
     const nearbyRequests = requests.filter((single) => {
