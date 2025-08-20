@@ -3,14 +3,12 @@ import logger from "../lib/logger"
 
 import { UnauthorizedError } from "../errors"
 import { JwtPayload } from "../types"
-
-const JWT_SECRET = process.env.JWT_SECRET || "supersecretjwtkeythatshouldbeverylongandrandom"
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1d"
+import { CONFIG } from "../config"
 
 function signToken(payload: JwtPayload): string {
   try {
-    const token = jwt.sign(payload, JWT_SECRET, {
-      expiresIn: "1d"
+    const token = jwt.sign(payload, CONFIG.jwtSecret, {
+      expiresIn: (CONFIG.jwtExpiration as any) || "30d"
     })
     logger.info("[JWT Service] Token signed successfully.")
     return token
@@ -22,7 +20,7 @@ function signToken(payload: JwtPayload): string {
 
 function verifyToken(token: string): JwtPayload {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload
+    const decoded = jwt.verify(token, CONFIG.jwtSecret) as JwtPayload
     logger.info("[JWT Service] Token verified successfully.")
     return decoded
   } catch (error: any) {

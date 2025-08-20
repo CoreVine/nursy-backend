@@ -3,11 +3,14 @@ import db from "../../services/prisma.service"
 import z from "zod"
 
 import { NotFoundError, ForbiddenError, ValidationError, BadRequestError, UnauthorizedError } from "../../errors"
-import { OrderStatus, PaymentType, TimeType, UserType } from "@prisma/client"
+import { OrderStatus, PaymentMethod, PaymentType, TimeType, UserType } from "@prisma/client"
 import { getDistanceFromLatLonInKm, toSocketError } from "../../lib/utils"
 import { Socket, Server as SocketIOServer } from "socket.io"
 import { BaseSocketController } from "./base.socket.controller"
 import { KashierService } from "../../services/kashier.service"
+import { CONFIG } from "../../config"
+import { userSelector } from "../../config/db-selectors.config"
+import { OrderModel } from "../../data-access/order"
 
 const CreateOrderSchema = z.object({
   serviceId: z.number().int().positive(),
@@ -28,7 +31,11 @@ const CreateOrderSchema = z.object({
 
 type CreateOrderPayload = z.infer<typeof CreateOrderSchema>
 type AcceptRequestPayload = { orderId: number }
-type InitPaymentPayload = { orderId: number; totalHours: number }
+type InitPaymentPayload = {
+  orderId: number
+  totalHours: number
+  paymentMethod: PaymentMethod
+}
 
 class RequestsSocketController extends BaseSocketController {
   static async handleConnection(socket: Socket, io: SocketIOServer) {
@@ -193,7 +200,6 @@ class RequestsSocketController extends BaseSocketController {
 
     if (!nurse) throw new NotFoundError("Nurse not found")
     if (nurse.latitude == null || nurse.longitude == null) throw new BadRequestError("Nurse location is missing")
-    //if (nurse.type !== UserType.Nurse) throw new ForbiddenError("User is not a nurse")
 
     const refusedOrders = await db.refusedOrder.findMany({
       where: { nurseId: nurse.id },
@@ -205,7 +211,7 @@ class RequestsSocketController extends BaseSocketController {
       where: {
         OR: [{ nurseId: null }, { nurseId: nurse.id }],
         AND: [{ id: { notIn: refusedOrders.map((ro) => ro.orderId) } }],
-        status: { in: [OrderStatus.Pending, OrderStatus.Stale, OrderStatus.Completed, OrderStatus.Accepted] }
+        status: { in: [OrderStatus.Pending, OrderStatus.Stale, OrderStatus.Accepted] }
       }
     })
 
@@ -236,10 +242,7 @@ class RequestsSocketController extends BaseSocketController {
   }
 
   static async handleAcceptRequestByNurse(socket: Socket, payload: AcceptRequestPayload) {
-    const order = await db.order.findUnique({
-      where: { id: payload.orderId },
-      include: { user: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } }, nurse: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } } }
-    })
+    const order = await OrderModel.findPk(payload.orderId)
     if (!order) throw new NotFoundError("Order not found")
 
     const nurse = await this.getUserFromSocket(socket)
@@ -249,10 +252,16 @@ class RequestsSocketController extends BaseSocketController {
     if (order.nurseId) throw new ForbiddenError("Order is already accepted by another nurse")
     if (order.status !== OrderStatus.Pending) throw new BadRequestError("Order is not in pending status")
 
+    const refusedOrder = await db.refusedOrder.findFirst({
+      where: { orderId: order.id, nurseId: nurse.id }
+    })
+
+    if (refusedOrder) throw new ForbiddenError("You have refused this order before, or the patient refused you before. You cannot accept it anymore.")
+
     const updatedOrder = await db.order.update({
       where: { id: order.id },
       data: { nurseId: nurse.id, status: OrderStatus.Stale },
-      include: { user: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } }, nurse: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } } }
+      include: { user: userSelector(), nurse: userSelector(), specificService: true, illnessType: true }
     })
 
     const inProgressOrder = await db.inProgressOrder.create({
@@ -269,10 +278,7 @@ class RequestsSocketController extends BaseSocketController {
   }
 
   static async handleRefuseRequestByNurse(socket: Socket, payload: AcceptRequestPayload) {
-    const order = await db.order.findUnique({
-      where: { id: payload.orderId },
-      include: { user: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } }, nurse: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } } }
-    })
+    const order = await OrderModel.findPk(payload.orderId)
 
     const nurse = await this.getUserFromSocket(socket)
     const user = await db.user.findUnique({ where: { id: nurse.id } })
@@ -290,6 +296,7 @@ class RequestsSocketController extends BaseSocketController {
     const refusedOrder = await db.refusedOrder.findFirst({
       where: { orderId: order.id, nurseId: nurse.id }
     })
+
     if (!refusedOrder) {
       await db.refusedOrder.create({
         data: {
@@ -305,10 +312,7 @@ class RequestsSocketController extends BaseSocketController {
   }
 
   static async handleAcceptRequestByPatient(socket: Socket, payload: AcceptRequestPayload) {
-    const order = await db.order.findUnique({
-      where: { id: payload.orderId },
-      include: { user: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } }, nurse: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } } }
-    })
+    const order = await OrderModel.findPk(payload.orderId)
     if (!order) throw new NotFoundError("Order not found")
 
     const nurse = await this.getUserFromSocket(socket)
@@ -331,17 +335,14 @@ class RequestsSocketController extends BaseSocketController {
   }
 
   static async handleRefuseRequestByPatient(socket: Socket, payload: AcceptRequestPayload) {
-    const order = await db.order.findUnique({
-      where: { id: payload.orderId },
-      include: { user: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } }, nurse: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } } }
-    })
+    const order = await OrderModel.findPk(payload.orderId)
 
     const user = await this.getUserFromSocket(socket)
 
     if (!order) throw new NotFoundError("Order not found")
+    if (!order.nurseId) throw new BadRequestError("Order is not accepted by any nurse")
     if (order.userId !== user?.id) throw new UnauthorizedError("This order doesn't belong to current logged in user.")
     if (order.status !== OrderStatus.Stale) throw new BadRequestError("Order is not in stale status to refuse")
-    if (!order.nurseId) throw new BadRequestError("Order is not accepted by any nurse")
 
     const updatedOrder = await db.order.update({
       where: { id: order?.id },
@@ -349,7 +350,11 @@ class RequestsSocketController extends BaseSocketController {
       include: { user: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } }, nurse: { select: { id: true, username: true, phoneNumber: true, email: true, isVerified: true } } }
     })
 
-    const refusedOrder = await db.refusedOrder.upsert({
+    await db.inProgressOrder.delete({
+      where: { orderId: order.id }
+    })
+
+    await db.refusedOrder.upsert({
       where: { orderId: order.id, nurseId: order.nurseId },
       create: {
         orderId: order.id,
@@ -367,10 +372,7 @@ class RequestsSocketController extends BaseSocketController {
   }
 
   static async initPayment(socket: Socket, payload: InitPaymentPayload) {
-    const order = await db.order.findUnique({
-      where: { id: payload.orderId },
-      include: { user: true }
-    })
+    const order = await OrderModel.findPk(payload.orderId)
 
     if (!order) throw new NotFoundError("Order not found")
     if (order.status !== OrderStatus.Accepted) throw new BadRequestError("Order is not in accepted status")
@@ -380,49 +382,70 @@ class RequestsSocketController extends BaseSocketController {
 
     if (order.userId !== reqUser.id) throw new ForbiddenError("You are not the owner of this order")
     if (user?.type !== UserType.Patient) throw new ForbiddenError("User is not a patient")
+    if (!order.nurseId) throw new BadRequestError("Order must have a nurse assigned for cash payments")
+
+    if (order.paymentType == PaymentType.Hourly && !payload.totalHours) throw new BadRequestError("Total hours are required for hourly payment type")
+    if (order.paymentType == PaymentType.Services && !order.specificServiceId) throw new BadRequestError("Specific service is required for services payment type")
 
     let kashier = new KashierService()
     let totalAmount = 0
-    let hourRate = 10
 
-    if (order.specificServiceId) {
-      const service = await db.specificService.findUnique({
-        where: { id: order.specificServiceId },
+    if (order.paymentType === PaymentType.Services) {
+      const specificService = await db.specificService.findUnique({
+        where: { id: order.specificServiceId ? order.specificServiceId : 0 },
         select: { price: true }
       })
-      if (!service) throw new NotFoundError("Specific service not found")
-      totalAmount = Number(service.price)
-    } else if (order.paymentType === PaymentType.Hourly) {
-      totalAmount = hourRate * (payload.totalHours || 1)
+      if (!specificService) throw new NotFoundError("Specific service not found")
+      totalAmount = Number(specificService.price)
+    } else if (order.paymentType === PaymentType.Hourly && payload.totalHours) {
+      totalAmount = Number(CONFIG.hourlyRate) * payload.totalHours
     } else {
       throw new BadRequestError("Invalid payment type for order")
     }
 
-    const payment = kashier.initializePayment({
+    const kashierResponse = kashier.initializePayment({
       amount: totalAmount,
       currency: "EGP",
       id: order.id
     })
 
-    const findPayment = await db.orderPayment.findFirst({
-      where: { orderId: order.id, userId: user.id, status: OrderStatus.Pending }
-    })
-
-    if (findPayment) return findPayment
-
-    const orderPayment = await db.orderPayment.create({
-      data: {
+    const payment = await db.orderPayment.upsert({
+      where: { orderId: order.id, userId: user.id, status: OrderStatus.Pending },
+      create: {
         orderId: order.id,
         userId: user.id,
         totalAmount: totalAmount,
-        totalHours: payload.totalHours,
-        paymentMethod: "card",
-        paymentUrl: payment.payment_url,
+        totalHours: order.paymentType === PaymentType.Hourly ? payload.totalHours || 1 : 0,
+        paymentMethod: payload.paymentMethod,
+        paymentUrl: payload.paymentMethod == PaymentMethod.Card ? kashierResponse.payment_url : null,
         status: OrderStatus.Pending
-      }
+      },
+      update: {}
     })
 
-    return orderPayment
+    if (!payment) throw new BadRequestError("Failed to create or retrieve payment")
+
+    if (payment.paymentMethod === PaymentMethod.Cash) {
+      const nurseWallet = await db.userWallet.upsert({
+        where: { userId: order.nurse?.id },
+        create: {
+          userId: order.nurseId,
+          balance: 0,
+          debit: 0
+        },
+        update: {}
+      })
+
+      await db.userWallet.update({
+        where: { userId: order.nurse?.id },
+        data: {
+          balance: totalAmount,
+          debit: Number(nurseWallet?.balance || 0) + Number(CONFIG.cashFees)
+        }
+      })
+    }
+
+    return payment
   }
 
   static async fetchPayment(socket: Socket, orderId: number) {

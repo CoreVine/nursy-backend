@@ -1,60 +1,20 @@
+import moment from "moment"
 import bcrypt from "bcryptjs"
 import db from "../services/prisma.service"
 
 import jwtService from "../services/jwt.service"
+import emailService from "../services/email.service"
 
-import { BadRequestError, NotFoundError, UnauthorizedError, ValidationError } from "../errors"
-import { LoginSchema, RegisterSchema } from "../routes/auth.route"
+import { BadRequestError, ValidationError } from "../errors"
+import { RegisterSchema } from "../routes/auth.route"
 import { NextFunction, Request, Response } from "express"
 import { UserModel } from "../data-access/user"
-import { UserType } from "@prisma/client"
 
 import { json } from "../lib/helpers"
-import emailService from "../services/email.service"
 import { generateSixDigitCode } from "../lib/utils"
 import { CONFIG } from "../config"
-import moment from "moment"
 
 export default class NurseAuthController {
-  static async login(req: Request, res: Response, next: NextFunction) {
-    try {
-      const parsed = LoginSchema.safeParse(req.body)!
-      if (!parsed.success) throw new ValidationError("Errors", parsed.error)
-
-      const { phoneNumber, password } = parsed.data
-
-      const user = await db.user.findUnique({
-        where: { phoneNumber }
-      })
-
-      if (!user) throw new NotFoundError("User not found")
-      if (user.type !== UserType.Nurse) throw new Error("Invalid Account type. This user is not a Nurse")
-
-      const isPasswordValid = await bcrypt.compare(password, user.password)
-      if (!isPasswordValid) throw new UnauthorizedError("Incorrect credentials")
-
-      const { password: userPassword, ...rest } = user
-      const payload = {
-        id: user.id,
-        email: user.email
-      }
-
-      const token = jwtService.signToken(payload)
-
-      return json({
-        message: "Logged in successfully",
-        status: 200,
-        data: {
-          user: rest,
-          token
-        },
-        res
-      })
-    } catch (error) {
-      next(error)
-    }
-  }
-
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
       const parsed = RegisterSchema.safeParse(req.body)!
@@ -108,7 +68,7 @@ export default class NurseAuthController {
       const hashedRandomInt = await bcrypt.hash(randomInt.toString(), 10)
       const verification = await UserModel.createVerificationToken(user.id, hashedRandomInt)
 
-      const emailTemplate = await emailService.sendTemplateEmail(user.email, CONFIG.appName, "account-verification", {
+      await emailService.sendTemplateEmail(user.email, CONFIG.appName, "account-verification", {
         name: user.username,
         verificationCode: randomInt,
         companyName: CONFIG.appName,
@@ -128,7 +88,7 @@ export default class NurseAuthController {
         }
       })
 
-      const newWallet = await db.userWallet.create({
+      await db.userWallet.create({
         data: {
           userId: user.id
         }
@@ -138,7 +98,11 @@ export default class NurseAuthController {
 
       const payload = {
         id: user.id,
-        email: user.email
+        email: user.email,
+        username: user.username,
+        phoneNumber: user.phoneNumber,
+        type: user.type,
+        isVerified: user.isVerified
       }
 
       const token = jwtService.signToken(payload)

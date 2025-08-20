@@ -16,7 +16,7 @@ class PaymentController {
 
       if (isVerified) {
         if (paymentStatus && paymentStatus === "SUCCESS") {
-          const order = await OrderModel.verifyOrder(Number(id))
+          const order = await OrderModel.verifyOrder(Number(id), query)
           return json({
             message: "Payment verified successfully",
             status: 200,

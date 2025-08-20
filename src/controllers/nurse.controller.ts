@@ -1,3 +1,6 @@
+import db from "../services/prisma.service"
+
+import { userSelector } from "../config/db-selectors.config"
 import { json } from "../lib/helpers"
 
 import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors"
@@ -5,30 +8,24 @@ import { NextFunction, Request, Response } from "express"
 import { OrderStatus } from "@prisma/client"
 import { OrderModel } from "../data-access/order"
 
-import db from "../services/prisma.service"
-
 class NurseController {
   static async getRequests(req: Request, res: Response, next: NextFunction) {
     try {
+      const { status = "Accepted" } = req.query
+      if (status && !Object.values(OrderStatus).includes(status as OrderStatus)) throw new BadRequestError("Invalid status provided")
+
       const requests = await OrderModel.paginate({
         page: req.query.page ? Number(req.query.page) : 1,
         pageSize: req.query.pageSize ? Number(req.query.pageSize) : 10,
         where: {
           nurseId: req.user?.id,
-          status: { in: [OrderStatus.Completed] }
+          status: (status as OrderStatus | undefined) || OrderStatus.Accepted
         },
         include: {
           service: true,
           specificService: true,
-          nurse: {
-            select: {
-              id: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-              isVerified: true
-            }
-          }
+          nurse: userSelector(),
+          user: userSelector()
         }
       })
 
@@ -52,15 +49,10 @@ class NurseController {
         where: { id: orderId, userId: req.user?.id },
         include: {
           service: true,
-          nurse: {
-            select: {
-              id: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-              isVerified: true
-            }
-          }
+          illnessType: true,
+          specificService: true,
+          nurse: userSelector(),
+          user: userSelector()
         }
       })
 

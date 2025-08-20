@@ -1,4 +1,4 @@
-import { User } from "@prisma/client"
+import { User, UserType } from "@prisma/client"
 import { Request, Response } from "express"
 
 type TRequest = Request & {
@@ -16,6 +16,10 @@ type TResponse = {
 type JwtPayload = {
   id: number
   email: string
+  username: string
+  phoneNumber: string
+  type: UserType
+  isVerified: boolean
 }
 
 type Appointment = {
@@ -90,7 +94,7 @@ interface PaymentInitResult {
   payment_url: string
   form_url: string
   form_method: "GET"
-  data: Record<string, string | number>
+  data: Record<string, any>
 }
 
 interface IframePaymentData {

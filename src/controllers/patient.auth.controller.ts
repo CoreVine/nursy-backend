@@ -9,7 +9,7 @@ import { LoginSchema, RegisterSchema, SendVerificationTokenSchema, UpdateLocatio
 
 import { BadRequestError, NotFoundError, UnauthorizedError, ValidationError } from "../errors"
 import { NextFunction, Request, Response } from "express"
-import { TRequest } from "../types"
+import { JwtPayload, TRequest } from "../types"
 import { UserModel } from "../data-access/user"
 import { UserType } from "@prisma/client"
 
@@ -27,20 +27,21 @@ export default class PatientAuthController {
 
       const { phoneNumber, password } = parsed.data
 
-      const user = await db.user.findUnique({
-        where: { phoneNumber },
-        include: { userData: true }
-      })
-
+      const user = await UserModel.findByPhoneNumber(phoneNumber, { userData: true, wallet: true })
       if (!user) throw new NotFoundError("User not found")
 
       const isPasswordValid = await bcrypt.compare(password, user.password)
       if (!isPasswordValid) throw new UnauthorizedError("Incorrect credentials")
 
       const { password: userPassword, ...rest } = user
-      const payload = {
+
+      const payload: JwtPayload = {
         id: user.id,
-        email: user.email
+        email: user.email,
+        username: user.username,
+        phoneNumber: user.phoneNumber,
+        type: user.type,
+        isVerified: user.isVerified
       }
 
       const token = jwtService.signToken(payload)
@@ -48,10 +49,7 @@ export default class PatientAuthController {
       return json({
         message: "Logged in successfully",
         status: 200,
-        data: {
-          user: rest,
-          token
-        },
+        data: { user: rest, token },
         res
       })
     } catch (error) {
@@ -78,24 +76,22 @@ export default class PatientAuthController {
       const hashedPassword = await bcrypt.hash(password, 10)
       const fileUrl = req.file?.path
 
-      const user = await db.user.create({
-        data: {
-          username,
-          phoneNumber,
-          gender,
-          birthDate: new Date(birthDate),
-          email,
-          type,
-          nationalIdPicture: fileUrl,
-          password: hashedPassword
-        }
+      const user = await UserModel.registerUser({
+        username,
+        phoneNumber,
+        gender,
+        birthDate: new Date(birthDate),
+        email,
+        type,
+        nationalIdPicture: fileUrl,
+        password: hashedPassword
       })
 
       const randomInt = generateSixDigitCode()
       const hashedRandomInt = await bcrypt.hash(randomInt.toString(), 10)
       const verification = await UserModel.createVerificationToken(user.id, hashedRandomInt)
 
-      const emailTemplate = await emailService.sendTemplateEmail(user.email, CONFIG.appName, "account-verification", {
+      await emailService.sendTemplateEmail(user.email, CONFIG.appName, "account-verification", {
         name: user.username,
         verificationCode: randomInt,
         companyName: CONFIG.appName,
@@ -104,19 +100,22 @@ export default class PatientAuthController {
       })
 
       const { password: userPassword, ...rest } = user
-      const payload = {
+
+      const payload: JwtPayload = {
         id: user.id,
-        email: user.email
+        email: user.email,
+        username: user.username,
+        phoneNumber: user.phoneNumber,
+        type: user.type,
+        isVerified: user.isVerified
       }
+
       const token = jwtService.signToken(payload)
 
       return json({
         message: "Registered successfully",
         status: 201,
-        data: {
-          token,
-          user: rest
-        },
+        data: { token, user: rest },
         res
       })
     } catch (error) {
@@ -129,14 +128,10 @@ export default class PatientAuthController {
       const user = (req as TRequest).user
       if (!user) throw new NotFoundError("User not found")
 
-      const loggedIn = await db.user.findUnique({
-        where: { id: user.id },
-        include: { userData: true }
-      })
+      const realUser = await UserModel.findPk(user.id, { userData: true, wallet: true })
+      if (!realUser) throw new NotFoundError("User not found")
 
-      if (!loggedIn) throw new NotFoundError("User not found")
-
-      const { password, ...payload } = loggedIn
+      const { password, ...payload } = realUser
 
       return json({
         message: "User retrieved successfully",
@@ -156,22 +151,13 @@ export default class PatientAuthController {
 
       const { username, email, phoneNumber } = data
 
-      const isUsernameExists = await db.user.findFirst({
-        where: { username, id: { not: req?.user?.id } },
-        select: { id: true }
-      })
+      const isUsernameExists = await UserModel.findFirstByUsername(username!, req?.user?.id)
       if (isUsernameExists) throw new BadRequestError("Username already exists")
 
-      const isEmailExists = await db.user.findFirst({
-        where: { email, id: { not: req?.user?.id } },
-        select: { id: true }
-      })
+      const isEmailExists = await UserModel.findFirstByEmail(email!, req?.user?.id)
       if (isEmailExists) throw new BadRequestError("E-mail already exists")
 
-      const isPhoneNumberExists = await db.user.findFirst({
-        where: { phoneNumber, id: { not: req?.user?.id } },
-        select: { id: true }
-      })
+      const isPhoneNumberExists = await UserModel.findFirstByPhoneNumber(phoneNumber!, req?.user?.id)
       if (isPhoneNumberExists) throw new BadRequestError("Phone number already exists")
 
       const mainUser = await db.user.findFirst({
@@ -195,12 +181,10 @@ export default class PatientAuthController {
         }
       })
 
-      const { password, ...rest } = updatedUser
-
       return json({
         message: "User information updated successfully",
         status: 200,
-        data: rest,
+        data: updatedUser,
         res
       })
     } catch (error) {

@@ -33,6 +33,11 @@ enum PaymentStatus {
   Failed
 } 
 
+enum PaymentMethod {
+  Cash
+  Card
+}
+
 enum PaymentType {
   Hourly
   Services
@@ -216,9 +221,13 @@ model OrderPayment {
 
   paymentUrl              String? @db.Text
   
-  paymentMethod           String? @db.VarChar(255) @default("kashier")
+  paymentMethod           PaymentMethod @default(Cash)
   kashierTranscationId    String? @db.VarChar(255)
   kashierOrderId          String? @db.VarChar(255)
+  merchantOrderId         String? @db.Text
+  signature               String? @db.Text
+  orderReference          String? @db.Text
+  cardBrand               String? @db.VarChar(50)
   kashierResponse         String? @db.LongText
 
   status      PaymentStatus @default(Pending)

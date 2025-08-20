@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client"
 import db from "../services/prisma.service"
 
 import { BaseModel } from "./model"
@@ -5,20 +6,56 @@ import { BaseModel } from "./model"
 export class UserModel extends BaseModel<typeof db.user> {
   static model = db.order
 
-  static findByEmail(email: string) {
-    return db.user.findUnique({
+  static async findPk(id: number, include: Prisma.UserInclude = {}) {
+    return await db.user.findUnique({
+      where: { id },
+      include
+    })
+  }
+
+  static async findByEmail(email: string) {
+    return await db.user.findUnique({
       where: { email }
     })
   }
 
-  static findByPhoneNumber(phoneNumber: string) {
-    return db.user.findUnique({
-      where: { phoneNumber }
+  static async findFirstByEmail(email: string, id: number, select: Prisma.UserSelect = { id: true }) {
+    return await db.user.findFirst({
+      where: { email, id: { not: id } },
+      select
     })
   }
 
-  static createVerificationToken(userId: number, token: string) {
-    return db.verificationToken.create({
+  static async findFirstByUsername(username: string, id: number, select: Prisma.UserSelect = { id: true }) {
+    return await db.user.findFirst({
+      where: { username, id: { not: id } },
+      select
+    })
+  }
+
+  static async findFirstByPhoneNumber(phoneNumber: string, id: number, select: Prisma.UserSelect = { id: true }) {
+    return await db.user.findFirst({
+      where: { phoneNumber, id: { not: id } },
+      select
+    })
+  }
+
+  static async findByUsername(username: string, include: Prisma.UserInclude = {}) {
+    return await db.user.findFirst({
+      where: { username },
+      include
+    })
+  }
+
+  static async findByPhoneNumber(phoneNumber: string, include: Prisma.UserInclude = {}) {
+    return await db.user.findUnique({
+      where: { phoneNumber },
+      include
+    })
+  }
+
+  static async createVerificationToken(userId: number, token: string) {
+    return await db.verificationToken.create({
       data: {
         userId,
         token,
@@ -27,9 +64,15 @@ export class UserModel extends BaseModel<typeof db.user> {
     })
   }
 
-  static findVerificationToken(userId: number) {
-    return db.verificationToken.findUnique({
+  static async findVerificationToken(userId: number) {
+    return await db.verificationToken.findUnique({
       where: { userId }
+    })
+  }
+
+  static async registerUser(data: Prisma.UserCreateInput) {
+    return await db.user.create({
+      data
     })
   }
 }
