@@ -2,14 +2,16 @@ import logger from "../../lib/logger"
 import db from "../../services/prisma.service"
 import z from "zod"
 
-import { NotFoundError, ForbiddenError, ValidationError, BadRequestError, UnauthorizedError } from "../../errors"
-import { OrderStatus, PaymentMethod, PaymentType, TimeType, UserType } from "@prisma/client"
 import { getDistanceFromLatLonInKm, toSocketError } from "../../lib/utils"
+import { userSelector } from "../../config/db-selectors.config"
+
+import { CONFIG } from "../../config"
+
+import { NotFoundError, ForbiddenError, ValidationError, BadRequestError, UnauthorizedError } from "../../errors"
+import { OrderStatus, PaymentMethod, PaymentStatus, PaymentType, TimeType, UserType } from "@prisma/client"
 import { Socket, Server as SocketIOServer } from "socket.io"
 import { BaseSocketController } from "./base.socket.controller"
 import { KashierService } from "../../services/kashier.service"
-import { CONFIG } from "../../config"
-import { userSelector } from "../../config/db-selectors.config"
 import { OrderModel } from "../../data-access/order"
 
 const CreateOrderSchema = z.object({
@@ -35,6 +37,10 @@ type InitPaymentPayload = {
   orderId: number
   totalHours: number
   paymentMethod: PaymentMethod
+}
+type NurseAcceptPaymentPayload = {
+  orderId: number
+  accepted: boolean
 }
 
 class RequestsSocketController extends BaseSocketController {
@@ -136,6 +142,17 @@ class RequestsSocketController extends BaseSocketController {
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error initializing payment:`, err)
         io.to(`requests.rooms.${payload.orderId}`).emit("requests.patient.payments.initialized", { success: false, error: toSocketError(err) })
+      }
+    })
+
+    socket.on("requests.nurse.payments.accept", async (payload: NurseAcceptPaymentPayload) => {
+      socket.join(`requests.rooms.${payload.orderId}`)
+      try {
+        const data = await this.acceptPaymentByNurse(socket, payload)
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.payments.accepted", { success: true, data })
+      } catch (err) {
+        logger.error(`[RequestsSocketController]: Error accepting payment by nurse:`, err)
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.payments.accepted", { success: false, error: toSocketError(err) })
       }
     })
 
@@ -447,6 +464,34 @@ class RequestsSocketController extends BaseSocketController {
     }
 
     return payment
+  }
+
+  static async acceptPaymentByNurse(socket: Socket, payload: NurseAcceptPaymentPayload) {
+    const reqUser = await this.getUserFromSocket(socket)
+    if (!reqUser) throw new UnauthorizedError("User not found")
+
+    const nurse = await db.user.findUnique({ where: { id: reqUser.id } })
+    if (!nurse) throw new NotFoundError("Nurse not found")
+
+    if (nurse.type !== UserType.Nurse) throw new ForbiddenError("User is not a nurse")
+
+    const order = await db.order.findUnique({
+      where: { id: payload.orderId },
+      include: { user: userSelector(), nurse: userSelector(), payment: true }
+    })
+
+    if (!order) throw new NotFoundError("Order not found")
+    if (!order.payment) throw new NotFoundError("Payment not found for this order")
+    if (order.nurseId != nurse.id) throw new ForbiddenError("This order is not assigned to you")
+    if (order.payment.status !== OrderStatus.Pending) throw new BadRequestError("Payment is not in pending status")
+    if (order.payment.paymentMethod != PaymentMethod.Cash) throw new BadRequestError("Payment method is not cash")
+
+    const payment = await db.orderPayment.update({
+      where: { id: order.payment.id },
+      data: { status: payload.accepted ? PaymentStatus.Paid : PaymentStatus.Refused }
+    })
+
+    return order
   }
 
   static async fetchPayment(socket: Socket, orderId: number) {

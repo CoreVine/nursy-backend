@@ -2,33 +2,32 @@ import { json } from "../lib/helpers"
 
 import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors"
 import { NextFunction, Request, Response } from "express"
-import { OrderStatus, TimeType, UserType } from "@prisma/client"
-import { OrderStatusList } from "../lib/type-lists"
+import { OrderStatus } from "@prisma/client"
 import { OrderModel } from "../data-access/order"
 
 import db from "../services/prisma.service"
+import { userSelector } from "../config/db-selectors.config"
 
 class PatientController {
   static async getRequests(req: Request, res: Response, next: NextFunction) {
     try {
+      const { status } = req.query
+
       const requests = await OrderModel.paginate({
         page: req.query.page ? Number(req.query.page) : 1,
         pageSize: req.query.pageSize ? Number(req.query.pageSize) : 10,
         where: {
           userId: req.user?.id,
-          status: { in: [OrderStatus.InProgress, OrderStatus.Rejected, OrderStatus.Completed] }
+          status: !status ? undefined : (status as OrderStatus)
         },
+        orderBy: { id: "desc" },
         include: {
           service: true,
-          nurse: {
-            select: {
-              id: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-              isVerified: true
-            }
-          }
+          illnessType: true,
+          payment: true,
+          specificService: true,
+          nurse: userSelector(),
+          user: userSelector()
         }
       })
 
@@ -52,15 +51,11 @@ class PatientController {
         where: { id: orderId, userId: req.user?.id },
         include: {
           service: true,
-          nurse: {
-            select: {
-              id: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-              isVerified: true
-            }
-          }
+          illnessType: true,
+          payment: true,
+          specificService: true,
+          nurse: userSelector(),
+          user: userSelector()
         }
       })
 

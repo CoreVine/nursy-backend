@@ -1,3 +1,5 @@
+import bcryptjs from "bcryptjs"
+
 import emailService from "./services/email.service"
 import logger from "./lib/logger"
 

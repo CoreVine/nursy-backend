@@ -4,6 +4,8 @@ export const CONFIG = {
   appPort: process.env.APP_PORT,
   appName: process.env.APP_NAME || "Nursy",
   appUrl: process.env.APP_URL || "http://localhost:8099",
+  apiUrl: process.env.API_URL || "http://localhost:8099/api",
+
   cashFees: process.env.CASH_FEES || 50.0,
   hourlyRate: process.env.HOURLY_RATE || 100.0,
   rateLimiter: {

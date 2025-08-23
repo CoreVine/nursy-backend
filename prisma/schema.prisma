@@ -29,9 +29,11 @@ enum OrderStatus {
 
 enum PaymentStatus {
   Pending
+  Stale
+  Refused
   Paid
   Failed
-} 
+}
 
 enum PaymentMethod {
   Cash

@@ -11,7 +11,7 @@ import { OrderModel } from "../data-access/order"
 class NurseController {
   static async getRequests(req: Request, res: Response, next: NextFunction) {
     try {
-      const { status = "Accepted" } = req.query
+      const { status } = req.query
       if (status && !Object.values(OrderStatus).includes(status as OrderStatus)) throw new BadRequestError("Invalid status provided")
 
       const requests = await OrderModel.paginate({
@@ -19,10 +19,13 @@ class NurseController {
         pageSize: req.query.pageSize ? Number(req.query.pageSize) : 10,
         where: {
           nurseId: req.user?.id,
-          status: (status as OrderStatus | undefined) || OrderStatus.Accepted
+          status: !status ? undefined : (status as OrderStatus)
         },
+        orderBy: { id: "desc" },
         include: {
           service: true,
+          illnessType: true,
+          payment: true,
           specificService: true,
           nurse: userSelector(),
           user: userSelector()
@@ -46,10 +49,11 @@ class NurseController {
       if (isNaN(orderId) || orderId <= 0) throw new BadRequestError("Invalid order ID")
 
       const request = await db.order.findUnique({
-        where: { id: orderId, userId: req.user?.id },
+        where: { id: orderId, nurseId: req.user?.id },
         include: {
           service: true,
           illnessType: true,
+          payment: true,
           specificService: true,
           nurse: userSelector(),
           user: userSelector()
@@ -57,7 +61,7 @@ class NurseController {
       })
 
       if (!request) throw new NotFoundError("Request not found")
-      if (request.userId !== req.user?.id) throw new UnauthorizedError("You are not authorized to view this request")
+      if (request.nurseId !== req.user?.id) throw new UnauthorizedError("You are not authorized to view this request")
 
       return json({
         message: "Request retrieved successfully",
