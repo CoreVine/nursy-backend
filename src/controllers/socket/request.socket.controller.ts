@@ -32,7 +32,7 @@ const CreateOrderSchema = z.object({
 })
 
 type CreateOrderPayload = z.infer<typeof CreateOrderSchema>
-type AcceptRequestPayload = { orderId: number }
+type DefaultPayload = { orderId: number }
 type InitPaymentPayload = {
   orderId: number
   totalHours: number
@@ -63,7 +63,7 @@ class RequestsSocketController extends BaseSocketController {
       }
     })
 
-    socket.on("requests.nurse.accept", async (payload: AcceptRequestPayload) => {
+    socket.on("requests.nurse.accept", async (payload: DefaultPayload) => {
       socket.join(`requests.rooms.${payload.orderId}`)
       try {
         const data = await this.handleAcceptRequestByNurse(socket, payload)
@@ -74,7 +74,7 @@ class RequestsSocketController extends BaseSocketController {
       }
     })
 
-    socket.on("requests.nurse.refuse", async (payload: AcceptRequestPayload) => {
+    socket.on("requests.nurse.refuse", async (payload: DefaultPayload) => {
       socket.join(`requests.rooms.${payload.orderId}`)
       try {
         const data = await this.handleRefuseRequestByNurse(socket, payload)
@@ -84,6 +84,17 @@ class RequestsSocketController extends BaseSocketController {
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error refusing request:`, err)
         io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.refused", { success: false, error: toSocketError(err) })
+      }
+    })
+
+    socket.on("requests.nurse.cancel", async (payload: DefaultPayload) => {
+      socket.join(`requests.rooms.${payload.orderId}`)
+      try {
+        const data = await this.handleCancelRequestByNurse(socket, payload)
+        io.to(`requests.rooms.${data.id}`).emit("requests.nurse.cancelled", { success: true, data })
+      } catch (err) {
+        logger.error(`[RequestsSocketController]: Error accepting request by patient:`, err)
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.cancelled", { success: false, error: toSocketError(err) })
       }
     })
 
@@ -111,7 +122,7 @@ class RequestsSocketController extends BaseSocketController {
       }
     })
 
-    socket.on("requests.patient.accept", async (payload: AcceptRequestPayload) => {
+    socket.on("requests.patient.accept", async (payload: DefaultPayload) => {
       socket.join(`requests.rooms.${payload.orderId}`)
       try {
         const data = await this.handleAcceptRequestByPatient(socket, payload)
@@ -122,7 +133,18 @@ class RequestsSocketController extends BaseSocketController {
       }
     })
 
-    socket.on("requests.patient.refuse", async (payload: AcceptRequestPayload) => {
+    socket.on("requests.patient.cancel", async (payload: DefaultPayload) => {
+      socket.join(`requests.rooms.${payload.orderId}`)
+      try {
+        const data = await this.handleCancelRequestByPatient(socket, payload)
+        io.to(`requests.rooms.${data.id}`).emit("requests.patient.cancelled", { success: true, data })
+      } catch (err) {
+        logger.error(`[RequestsSocketController]: Error accepting request by patient:`, err)
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.patient.cancelled", { success: false, error: toSocketError(err) })
+      }
+    })
+
+    socket.on("requests.patient.refuse", async (payload: DefaultPayload) => {
       socket.join(`requests.rooms.${payload.orderId}`)
       try {
         const data = await this.handleRefuseRequestByPatient(socket, payload)
@@ -259,7 +281,7 @@ class RequestsSocketController extends BaseSocketController {
     return requests
   }
 
-  static async handleAcceptRequestByNurse(socket: Socket, payload: AcceptRequestPayload) {
+  static async handleAcceptRequestByNurse(socket: Socket, payload: DefaultPayload) {
     const order = await OrderModel.findPk(payload.orderId)
     if (!order) throw new NotFoundError("Order not found")
 
@@ -295,7 +317,7 @@ class RequestsSocketController extends BaseSocketController {
     return updatedOrder
   }
 
-  static async handleRefuseRequestByNurse(socket: Socket, payload: AcceptRequestPayload) {
+  static async handleRefuseRequestByNurse(socket: Socket, payload: DefaultPayload) {
     const order = await OrderModel.findPk(payload.orderId)
 
     const nurse = await this.getUserFromSocket(socket)
@@ -329,7 +351,27 @@ class RequestsSocketController extends BaseSocketController {
     return updatedOrder
   }
 
-  static async handleAcceptRequestByPatient(socket: Socket, payload: AcceptRequestPayload) {
+  static async handleCancelRequestByNurse(socket: Socket, payload: DefaultPayload) {
+    const nurse = await this.getUserFromSocket(socket)
+    if (!nurse) throw new UnauthorizedError("User not found")
+
+    if (nurse.type != UserType.Nurse) throw new ForbiddenError("User is not a nurse")
+
+    const order = await OrderModel.findPk(payload.orderId)
+    if (!order) throw new NotFoundError("Order not found")
+    if (order.nurseId !== nurse.id) throw new UnauthorizedError("This order doesn't belong to current logged in user.")
+
+    if (order.status != "Stale") throw new BadRequestError("Order is not in stale status to cancel")
+
+    const cancelledOrder = await db.order.delete({
+      where: { id: order.id }
+    })
+    if (!cancelledOrder) throw new BadRequestError("Failed to cancel order")
+
+    return cancelledOrder
+  }
+
+  static async handleAcceptRequestByPatient(socket: Socket, payload: DefaultPayload) {
     const order = await OrderModel.findPk(payload.orderId)
     if (!order) throw new NotFoundError("Order not found")
 
@@ -352,7 +394,27 @@ class RequestsSocketController extends BaseSocketController {
     return updatedOrder
   }
 
-  static async handleRefuseRequestByPatient(socket: Socket, payload: AcceptRequestPayload) {
+  static async handleCancelRequestByPatient(socket: Socket, payload: DefaultPayload) {
+    const user = await this.getUserFromSocket(socket)
+    if (!user) throw new UnauthorizedError("User not found")
+
+    if (user.type != UserType.Patient) throw new ForbiddenError("User is not a patient")
+
+    const order = await OrderModel.findPk(payload.orderId)
+    if (!order) throw new NotFoundError("Order not found")
+    if (order.userId !== user.id) throw new UnauthorizedError("This order doesn't belong to current logged in user.")
+
+    if (order.status != "Stale") throw new BadRequestError("Order is not in stale status to cancel")
+
+    const cancelledOrder = await db.order.delete({
+      where: { id: order.id }
+    })
+    if (!cancelledOrder) throw new BadRequestError("Failed to cancel order")
+
+    return cancelledOrder
+  }
+
+  static async handleRefuseRequestByPatient(socket: Socket, payload: DefaultPayload) {
     const order = await OrderModel.findPk(payload.orderId)
 
     const user = await this.getUserFromSocket(socket)

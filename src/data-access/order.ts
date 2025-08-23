@@ -17,6 +17,7 @@ export class OrderModel extends BaseModel<typeof db.order> {
         user: userSelector(),
         nurse: userSelector(),
         specificService: true,
+        payment: true,
         illnessType: true,
         ...include
       }

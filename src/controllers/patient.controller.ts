@@ -72,6 +72,34 @@ class PatientController {
       next(error)
     }
   }
+
+  static async hasPendingRequest(req: Request, res: Response, next: NextFunction) {
+    try {
+      const pendingRequest = await db.order.findFirst({
+        where: {
+          userId: req.user?.id,
+          status: { in: [OrderStatus.Pending, OrderStatus.Stale, OrderStatus.Accepted] }
+        },
+        include: {
+          user: userSelector(),
+          nurse: userSelector(),
+          service: true,
+          illnessType: true,
+          payment: true,
+          specificService: true
+        }
+      })
+
+      return json({
+        message: "Pending request",
+        data: { hasPendingRequest: !!pendingRequest, request: pendingRequest },
+        status: 200,
+        res
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
 }
 
 export default PatientController

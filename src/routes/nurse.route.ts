@@ -9,6 +9,7 @@ import NurseController from "../controllers/nurse.controller"
 export const nurseRouter = Router()
 
 nurseRouter.get("/requests", isAuthenticatedMiddleware, isVerifiedMiddleware, isUserOfTypeMiddleware("Nurse"), NurseController.getRequests)
+nurseRouter.get("/requests-pending/current", isAuthenticatedMiddleware, isVerifiedMiddleware, isUserOfTypeMiddleware("Nurse"), NurseController.hasPendingRequest)
 nurseRouter.get("/requests/:orderId", isAuthenticatedMiddleware, isVerifiedMiddleware, isUserOfTypeMiddleware("Nurse"), NurseController.getRequestById)
 
 export default nurseRouter
