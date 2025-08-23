@@ -3,8 +3,8 @@ export const CONFIG = {
   jwtExpiration: process.env.JWT_EXPIRES_IN || "30d",
   appPort: process.env.APP_PORT,
   appName: process.env.APP_NAME || "Nursy",
-  appUrl: process.env.APP_URL || "http://localhost:8099",
-  apiUrl: process.env.API_URL || "http://localhost:8099/api",
+  appUrl: process.env.APP_URL,
+  apiUrl: process.env.API_URL,
 
   cashFees: process.env.CASH_FEES || 50.0,
   hourlyRate: process.env.HOURLY_RATE || 100.0,
