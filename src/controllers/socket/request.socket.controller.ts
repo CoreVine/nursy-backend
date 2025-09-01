@@ -98,6 +98,17 @@ class RequestsSocketController extends BaseSocketController {
       }
     })
 
+    socket.on("requests.nurse.payments.accept", async (payload: NurseAcceptPaymentPayload) => {
+      socket.join(`requests.rooms.${payload.orderId}`)
+      try {
+        const data = await this.acceptPaymentByNurse(socket, payload)
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.payments.accepted", { success: true, data })
+      } catch (err) {
+        logger.error(`[RequestsSocketController]: Error accepting payment by nurse:`, err)
+        io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.payments.accepted", { success: false, error: toSocketError(err) })
+      }
+    })
+
     // PATIENT FLOW
 
     socket.on("requests.patient.fetch", async () => {
@@ -164,17 +175,6 @@ class RequestsSocketController extends BaseSocketController {
       } catch (err) {
         logger.error(`[RequestsSocketController]: Error initializing payment:`, err)
         io.to(`requests.rooms.${payload.orderId}`).emit("requests.patient.payments.initialized", { success: false, error: toSocketError(err) })
-      }
-    })
-
-    socket.on("requests.nurse.payments.accept", async (payload: NurseAcceptPaymentPayload) => {
-      socket.join(`requests.rooms.${payload.orderId}`)
-      try {
-        const data = await this.acceptPaymentByNurse(socket, payload)
-        io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.payments.accepted", { success: true, data })
-      } catch (err) {
-        logger.error(`[RequestsSocketController]: Error accepting payment by nurse:`, err)
-        io.to(`requests.rooms.${payload.orderId}`).emit("requests.nurse.payments.accepted", { success: false, error: toSocketError(err) })
       }
     })
 
@@ -547,6 +547,11 @@ class RequestsSocketController extends BaseSocketController {
     if (order.nurseId != nurse.id) throw new ForbiddenError("This order is not assigned to you")
     if (order.payment.status !== OrderStatus.Pending) throw new BadRequestError("Payment is not in pending status")
     if (order.payment.paymentMethod != PaymentMethod.Cash) throw new BadRequestError("Payment method is not cash")
+
+    await db.order.update({
+      where: { id: order.id },
+      data: { status: OrderStatus.Completed }
+    })
 
     const payment = await db.orderPayment.update({
       where: { id: order.payment.id },
