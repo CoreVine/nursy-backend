@@ -548,17 +548,24 @@ class RequestsSocketController extends BaseSocketController {
     if (order.payment.status !== OrderStatus.Pending) throw new BadRequestError("Payment is not in pending status")
     if (order.payment.paymentMethod != PaymentMethod.Cash) throw new BadRequestError("Payment method is not cash")
 
-    await db.order.update({
+    const updatedOrder = await db.order.update({
       where: { id: order.id },
       data: { status: OrderStatus.Completed }
     })
+
+    if (!updatedOrder) throw new BadRequestError("Failed to update order status")
 
     const payment = await db.orderPayment.update({
       where: { id: order.payment.id },
       data: { status: payload.accepted ? PaymentStatus.Paid : PaymentStatus.Refused }
     })
 
-    return order
+    if (!payment) throw new BadRequestError("Failed to update payment status")
+
+    return {
+      ...order,
+      status: OrderStatus.Completed
+    }
   }
 
   static async fetchPayment(socket: Socket, orderId: number) {
