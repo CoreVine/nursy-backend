@@ -1,5 +1,6 @@
 export const CONFIG = {
   jwtSecret: process.env.JWT_SECRET!,
+  jwtAdminSecret: process.env.JWT_ADMIN_SECRET!,
   jwtExpiration: process.env.JWT_EXPIRES_IN || "30d",
   appPort: process.env.APP_PORT,
   appName: process.env.APP_NAME || "Nursy",

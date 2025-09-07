@@ -16,6 +16,7 @@ export async function bootstrapApplication(httpServer: HttpServer): Promise<void
     logger.info("Global error handlers registered.")
 
     socketIOService.init(httpServer)
+    console.log(await bcryptjs.hash("0552320541", 10))
 
     await emailService.init()
     await testPrismaConnection()

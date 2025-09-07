@@ -1,14 +1,15 @@
-import { User, UserType } from "@prisma/client"
+import { Admin, User, UserType } from "@prisma/client"
 import { Request, Response } from "express"
 
 type TRequest = Request & {
   user?: User
+  admin?: Admin
 }
 
 type TResponse = {
   res: Response
-  status: number
-  message: string
+  status?: number
+  message?: string
   data?: any
   errors?: any
 }
@@ -20,6 +21,12 @@ type JwtPayload = {
   phoneNumber: string
   type: UserType
   isVerified: boolean
+}
+
+type AdminJwtPayload = {
+  id: number
+  email: string
+  username: string
 }
 
 type Appointment = {

@@ -9,9 +9,9 @@ import { Request, Response } from "express"
 import { NotFoundError } from "../src/errors"
 import { CONFIG } from "../src/config"
 
+import { assignAdmin, assignUser } from "../src/middleware/auth.middleware"
 import { bootstrapApplication } from "../src/bootstrap"
 import { errorHandler } from "../src/middleware/error-handler.middleware"
-import { assignUser } from "../src/middleware/auth.middleware"
 import { createServer } from "http"
 import { json } from "../src/lib/helpers"
 
@@ -31,8 +31,9 @@ bootstrapApplication(httpServer)
     app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")))
 
     app.use(assignUser)
+    app.use(assignAdmin)
 
-    app.get("/", (req: Request, res: Response) => {
+    app.get("/", (_: Request, res: Response) => {
       return json({
         res,
         message: "Welcome to the API!",

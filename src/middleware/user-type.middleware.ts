@@ -4,11 +4,13 @@ import { Request, Response, NextFunction } from "express"
 import { UnauthorizedError, AuthError } from "../errors"
 import { JwtPayload } from "jsonwebtoken"
 import { User, UserType } from "@prisma/client"
+import { AdminJwtPayload } from "../types"
 
 declare global {
   namespace Express {
     interface Request {
       user?: JwtPayload
+      admin?: AdminJwtPayload
     }
   }
 }
