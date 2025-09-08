@@ -4,7 +4,7 @@ import db from "../services/prisma.service"
 import { BaseModel } from "./model"
 
 export class UserModel extends BaseModel<typeof db.user> {
-  static model = db.order
+  static model = db.user
 
   static async findPk(id: number, include: Prisma.UserInclude = {}) {
     return await db.user.findUnique({

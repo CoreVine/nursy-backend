@@ -1,4 +1,4 @@
-import { OrderStatus, PaymentStatus, Prisma } from "@prisma/client"
+import { OrderStatus, Prisma } from "@prisma/client"
 import { DatabaseError } from "../errors"
 import { BaseModel } from "./model"
 

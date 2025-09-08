@@ -10,6 +10,8 @@ import dataRouter from "./data.route"
 import adminStatisticsRouter from "./admin/statistics.route"
 import adminUsersRouter from "./admin/users.route"
 import adminAuthRouter from "./admin/auth.route"
+import adminsRouter from "./admin/admins.route"
+import adminOrdersRouter from "./admin/orders.route"
 
 const router = Router()
 
@@ -23,5 +25,7 @@ router.use("/data", dataRouter)
 router.use("/admin/auth", adminAuthRouter)
 router.use("/admin/users", adminUsersRouter)
 router.use("/admin/statistics", adminStatisticsRouter)
+router.use("/admin/admins", adminsRouter)
+router.use("/admin/orders", adminOrdersRouter)
 
 export default router
