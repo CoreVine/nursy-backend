@@ -37,7 +37,7 @@ export default class AdminOrdersController {
 
   static async getOrder(req: Request, res: Response, next: NextFunction) {
     try {
-      const { userId, orderId } = req.params
+      const { orderId } = req.params
 
       const order = await OrderModel.findById(+orderId, {
         nurse: userSelector(),
@@ -48,9 +48,7 @@ export default class AdminOrdersController {
         illnessType: true
       })
 
-      if (!order || (order.userId !== +userId && order.nurseId !== +userId)) throw new BadRequestError("Order not found")
-
-      logger.info(`Fetched order for user ID: ${userId}`)
+      if (!order) throw new BadRequestError("Order not found")
 
       return json({ res, data: order })
     } catch (error) {

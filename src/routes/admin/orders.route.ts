@@ -1,10 +1,10 @@
-import { Router } from "express"
+import AdminOrdersController from "../../controllers/admin/orders.controller"
 import z from "zod"
 
-import AdminOrdersController from "../../controllers/admin/orders.controller"
+import { Router } from "express"
+
 import { isAuthenticatedAdminMiddleware } from "../../middleware/auth.middleware"
 import { validateParams, validateQueryParams } from "../../middleware/validate.middleware"
-import { UserType } from "@prisma/client"
 
 const adminOrdersRouter = Router()
 
