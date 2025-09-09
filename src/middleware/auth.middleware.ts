@@ -16,17 +16,17 @@ declare global {
 }
 
 export async function isAuthenticatedMiddleware(req: Request, res: Response, next: NextFunction) {
-  let token: string | undefined
-
-  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-    token = req.headers.authorization.split(" ")[1]
-  }
-
-  if (!token) {
-    throw new UnauthorizedError("You are not logged in! Please log in to get access.")
-  }
-
   try {
+    let token: string | undefined
+
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1]
+    }
+
+    if (!token) {
+      throw new UnauthorizedError("You are not logged in! Please log in to get access.")
+    }
+
     const decodedPayload = jwtService.verifyToken(token)
     const mainUser = await db.user.findUnique({
       where: { id: decodedPayload.id }
@@ -75,17 +75,16 @@ export async function assignUser(req: Request, res: Response, next: NextFunction
 /// For Admin
 
 export async function isAuthenticatedAdminMiddleware(req: Request, res: Response, next: NextFunction) {
-  let token: string | undefined
-
-  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-    token = req.headers.authorization.split(" ")[1]
-  }
-
-  if (!token) {
-    throw new UnauthorizedError("You are not logged in! Please log in to get access.")
-  }
-
   try {
+    let token: string | undefined
+
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1]
+    }
+
+    if (!token) {
+      throw new UnauthorizedError("You are not logged in! Please log in to get access.")
+    }
     const decodedPayload = jwtService.verifyAdminToken(token)
     const mainAdmin = await db.admin.findUnique({
       where: { id: decodedPayload.id }
