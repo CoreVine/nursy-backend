@@ -37,6 +37,9 @@ export class BaseModel<TDelegate extends { [k: string]: any }> {
     return this.model.create(args)
   }
 
+  static async count<T extends { count: (args?: any) => Promise<number> }, TArgs extends NonNullable<Parameters<T["count"]>[0]>["where"]>(this: { model: T }, where?: TArgs): Promise<number> {
+    return this.model.count(where ? { where } : {})
+  }
   static async update<T extends { update: (args: any) => any }, TData>(this: { model: T }, id: number, data: TData): Promise<Awaited<ReturnType<T["update"]>>> {
     return this.model.update({
       where: { id },

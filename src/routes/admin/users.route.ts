@@ -3,8 +3,14 @@ import z from "zod"
 
 import AdminUsersController from "../../controllers/admin/users.controller"
 import { isAuthenticatedAdminMiddleware } from "../../middleware/auth.middleware"
-import { validateParams, validateQueryParams } from "../../middleware/validate.middleware"
-import { UserType } from "@prisma/client"
+import { validateBody, validateParams, validateQueryParams } from "../../middleware/validate.middleware"
+import { UserDataStatus, UserType } from "@prisma/client"
+
+export const UpdateNurseWalletSchema = z.object({
+  amount: z.number().default(0),
+  type: z.enum(["Credit", "Debit"]),
+  description: z.string().max(255).optional()
+})
 
 const adminUsersRouter = Router()
 
@@ -25,6 +31,22 @@ adminUsersRouter.get(
 )
 
 adminUsersRouter.get(
+  "/pending",
+  isAuthenticatedAdminMiddleware,
+  validateQueryParams(
+    z.object({
+      page: z.number().transform(Number).default(1).optional(),
+      limit: z.number().transform(Number).default(10).optional(),
+      papersStatus: z.enum([UserDataStatus.Pending, UserDataStatus.Rejected]).default("Pending").optional(),
+      search: z.string().max(255).default("").optional(),
+      orderType: z.enum(["asc", "desc"]).default("desc").optional(),
+      orderBy: z.enum(["createdAt", "updatedAt", "id", "username"]).default("id").optional()
+    })
+  ),
+  AdminUsersController.getPendingNurses
+)
+
+adminUsersRouter.get(
   "/:userId",
   isAuthenticatedAdminMiddleware,
   validateParams(
@@ -34,6 +56,33 @@ adminUsersRouter.get(
   ),
   AdminUsersController.getUserById
 )
+
+adminUsersRouter.get(
+  "/:userId/papers",
+  isAuthenticatedAdminMiddleware,
+  validateParams(
+    z.object({
+      userId: z.number().transform(Number)
+    })
+  ),
+  AdminUsersController.getNursePapers
+)
+
+adminUsersRouter.patch(
+  "/:userId/papers",
+  isAuthenticatedAdminMiddleware,
+  validateBody(
+    z.object({
+      status: z.enum([UserDataStatus.Approved, UserDataStatus.Rejected])
+    })
+  ),
+  AdminUsersController.updateNursePapersStatus
+)
+
+adminUsersRouter.get("/:userId/wallet", isAuthenticatedAdminMiddleware, AdminUsersController.getNurseWallet)
+adminUsersRouter.get("/:userId/wallet/history", isAuthenticatedAdminMiddleware, AdminUsersController.getNurseWalletHistory)
+adminUsersRouter.get("/:userId/wallet/history/:historyId", isAuthenticatedAdminMiddleware, AdminUsersController.getNurseWalletHistoryItem)
+adminUsersRouter.post("/:userId/wallet", isAuthenticatedAdminMiddleware, validateBody(UpdateNurseWalletSchema), AdminUsersController.updateNurseWallet)
 
 adminUsersRouter.get(
   "/:userId/counts",

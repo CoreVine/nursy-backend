@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client"
+import { Prisma, UserDataStatus } from "@prisma/client"
 import db from "../services/prisma.service"
 
 import { BaseModel } from "./model"
@@ -73,6 +73,20 @@ export class UserModel extends BaseModel<typeof db.user> {
   static async registerUser(data: Prisma.UserCreateInput) {
     return await db.user.create({
       data
+    })
+  }
+
+  static async updateNursePapers(userId: number, status: UserDataStatus) {
+    return await db.userData.update({
+      where: { userId },
+      data: { status }
+    })
+  }
+
+  static async updateNurseWallet(userId: number, balance: number, debit: number) {
+    return await db.userWallet.update({
+      where: { userId },
+      data: { balance, debit }
     })
   }
 }

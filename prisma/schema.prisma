@@ -27,6 +27,11 @@ enum OrderStatus {
   Rejected
 }
 
+enum WalletHistoryType {
+  Credit
+  Debit
+}
+
 enum PaymentStatus {
   Pending
   Stale
@@ -62,6 +67,8 @@ model Admin {
   email       String   @unique
   password    String
 
+  walletHistory WalletHistory[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
 
@@ -89,14 +96,14 @@ model User {
   wallet             UserWallet?
   verificationTokens VerificationToken[]
 
-  orders    Order[] @relation("user_orders")
-  requests  Order[] @relation("nurse_requests")
-
+  orders        Order[] @relation("user_orders")
+  requests      Order[] @relation("nurse_requests")
   userChats     Chat[] @relation("user_chats")
   nurseChats    Chat[] @relation("nurse_chats")
   messages      Message[] @relation("user_messages")
   payments      OrderPayment[]
   refusedOrders RefusedOrder[]
+  walletHistory WalletHistory[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
@@ -142,11 +149,30 @@ model UserWallet {
   debit       Decimal @db.Decimal(10, 2) @default(0)
 
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
+  history     WalletHistory[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
 
   @@map("users_wallets")
+}
+
+model WalletHistory {
+  id          Int      @id @default(autoincrement())
+  walletId    Int
+  amount      Decimal @db.Decimal(10, 2)
+  type        String   @db.VarChar(255)
+  description String?  @db.Text
+  fromUserId  Int?
+  byAdminId   Int?
+
+  wallet      UserWallet @relation(fields: [walletId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  fromUser    User? @relation(fields: [fromUserId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  byAdmin     Admin? @relation(fields: [byAdminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
+
+  @@map("wallet_histories")
 }
 
 model Service {
@@ -155,6 +181,8 @@ model Service {
   description String? @db.Text
   salary            Decimal @db.Decimal(10, 2)
   hourlyFees        Decimal @db.Decimal(10, 2) @default(0)
+
+  status      Boolean @default(true)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())
@@ -311,6 +339,7 @@ model SpecificService {
   name        String
   price       Decimal @db.Decimal(10, 2) @default(0)
   description String? @db.Text
+  status      Boolean @default(true)
 
   serviceId   Int @default(1)
   service     Service @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
